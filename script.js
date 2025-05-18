@@ -20,16 +20,16 @@ function rgbToHex(r, g, b) {
 
 // Helper function: Convert RGB components to RGB string
 function rgbToString(r, g, b) {
-    return `rgb(${r}, ${g}, ${b})`;
+    return `RGB(${r}, ${g}, ${b})`;
 }
 
 // Helper function: Convert HSL array to HSL string
 function hslToString(h, s, l) {
-    return `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+    return `HSL(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
 }
 
-// Helper function: Calculate luminance to determine text color (black/white)
-function getLuminance(r, g, b) {
+// Helper function: Calculate luminance (0-1) for WCAG
+function getRelativeLuminance(r, g, b) {
     const [rLinear, gLinear, bLinear] = [r, g, b].map(v => {
         v /= 255;
         return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
@@ -37,24 +37,29 @@ function getLuminance(r, g, b) {
     return 0.2126 * rLinear + 0.7152 * gLinear + 0.0722 * bLinear;
 }
 
-// Helper function: Determine text color (black or white) based on background luminance
+// Helper function: Determine text color (dark or light) based on background luminance
 function getTextColor(bgColor) {
     const { r, g, b } = hexToRgb(bgColor);
-    const luminance = getLuminance(r, g, b);
-    // Use a contrast ratio threshold (e.g., 4.5 for AA)
-    // Luminance of white is 1, black is 0.
-    // Contrast Ratio = (L1 + 0.05) / (L2 + 0.05)
-    // We want (L_text + 0.05) / (L_bg + 0.05) >= 4.5 or (L_bg + 0.05) / (L_text + 0.05) >= 4.5
-    // For white text (L_text = 1): (1 + 0.05) / (luminance + 0.05) >= 4.5
-    // For black text (L_text = 0): (luminance + 0.05) / (0 + 0.05) >= 4.5
-    // A simpler heuristic often used is based on 128, but using luminance is better.
-    // A threshold of ~0.18-0.2 can work for switching text color.
-    return luminance > 0.18 ? '#1f2937' : 'white'; // Use a specific dark color instead of pure black
+    const luminance = getRelativeLuminance(r, g, b);
+    // Use a luminance threshold to switch between dark and light text
+    return luminance > 0.2 ? '#1f2937' : '#f0f0f0'; // Use specific dark/light colors
+}
+
+// Helper function: Get glow color based on background luminance
+function getGlowColor(bgColor) {
+    const { r, g, b } = hexToRgb(bgColor);
+    const luminance = getRelativeLuminance(r, g, b);
+    // Use a luminance threshold to switch between light and dark glow
+    return luminance > 0.5 ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.5)';
 }
 
 // Helper function: Convert Hex string to RGB object
 function hexToRgb(hex) {
   hex = hex.replace('#', '');
+  // Handle shorthand hex like #abc
+  if (hex.length === 3) {
+    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  }
   return {
     r: parseInt(hex.substr(0, 2), 16),
     g: parseInt(hex.substr(2, 2), 16),
@@ -87,111 +92,86 @@ function hslToHex(h, s, l) { // h(0-360), s(0-100), l(0-100)
     return rgbToHex(r, g, b);
 }
 
-// Helper function: Get color from gradient position (H from X, L from Y, S=100%)
-function getColorAtPosition(x, y, width, height) {
+// Helper function: Get HSL from gradient position (H from X, L from Y, S=100%)
+function getHSLAtPosition(x, y, width, height) {
     const hue = (x / width) * 360;
     const yRatio = y / height; // 0 (top) to 1 (bottom)
-
     let lightness;
-    // CSS gradient: white (L=100) at top, color (L=50) at mid, black (L=0) at bottom
+    // CSS gradient mapping (approximation): white (L=100) at top, color (L=50) at mid, black (L=0) at bottom
     if (yRatio < 0.5) { // Interpolate L from 100 (yRatio=0) down to 50 (yRatio=0.5)
         lightness = 100 - (yRatio * 2 * 50);
     } else { // Interpolate L from 50 (yRatio=0.5) down to 0 (yRatio=1)
         lightness = 50 - ((yRatio - 0.5) * 2 * 50);
     }
     lightness = Math.max(0, Math.min(100, lightness)); // Clamp lightness
-    const saturation = 100; // Full saturation for this picker type - this gradient doesn't vary saturation
-
-    return { h: hue, s: saturation, l: lightness }; // Return HSL components
+    const saturation = 100; // Full saturation for this gradient type
+    return { h: hue, s: saturation, l: lightness };
 }
 
 // Function to generate a color palette based on harmony rule and size
 function generatePalette(baseHex, rule, size) {
     const [h, s, l] = hexToHsl(baseHex);
     const colors = [];
-
-    colors.push(baseHex); // Always include the base color
-
     const ensureHue = hue => (hue % 360 + 360) % 360; // Ensure hue is 0-360
-
     switch (rule) {
         case 'complementary':
-            // Add complementary color
+            colors.push(baseHex);
             if (size > 1) colors.push(hslToHex(ensureHue(h + 180), s, l));
-            // Fill remaining with shades/tints of base or complementary
-            while (colors.length < size) {
-                const lastColor = colors[colors.length - 1];
-                const [lastH, lastS, lastL] = hexToHsl(lastColor);
-                // Add a tint or shade
-                if (lastL > 50) { // If light, add a shade
-                  colors.push(hslToHex(lastH, lastS, Math.max(l - (colors.length - 1) * 10, 10)));
-                } else { // If dark, add a tint
-                  colors.push(hslToHex(lastH, lastS, Math.min(l + (colors.length - 1) * 10, 90)));
-                }
+            // Add variations (tints/shades) of the base and complementary
+            for(let i = colors.length; i < size; i++) {
+                const baseColor = colors[i % 2]; // Alternate between base and complementary
+                const [baseH, baseS, baseL] = hexToHsl(baseColor);
+                const deltaL = (i < 4 ? 15 : 30); // Adjust step
+                const newL = (i % 4 < 2) ? baseL + deltaL : baseL - deltaL; // Alternate tint/shade
+                colors.push(hslToHex(baseH, baseS, Math.max(5, Math.min(95, newL))));
             }
             break;
-
         case 'analogous':
-            // Add colors near the base hue
-            const angle = 30; // Typical analogous angle
+            colors.push(baseHex);
+            const angle = 30; // Base angle
             for (let i = 1; i < size; i++) {
-                // Alternate adding on left and right
                 const sign = (i % 2 === 1) ? 1 : -1;
                 const newHue = ensureHue(h + sign * angle * Math.ceil(i / 2));
-                // Slightly vary lightness/saturation for visual interest
-                const newL = Math.max(10, Math.min(90, l + sign * (i % 2 === 0 ? 10 : -10)));
-                const newS = Math.max(20, Math.min(100, s + sign * (i % 2 === 1 ? 10 : -10)));
+                // Slightly vary lightness/saturation for visual interest, less aggressive steps
+                const newL = Math.max(10, Math.min(90, l + sign * (i % 2 === 0 ? 8 : -8)));
+                const newS = Math.max(20, Math.min(100, s + sign * (i % 2 === 1 ? 8 : -8)));
                 colors.push(hslToHex(newHue, newS, newL));
             }
             break;
-
         case 'triadic':
             const h2 = ensureHue(h + 120);
             const h3 = ensureHue(h + 240);
-            if (size > 1) colors.push(hslToHex(h2, s, l));
-            if (size > 2) colors.push(hslToHex(h3, s, l));
-            // Fill remaining with shades/tints of the three base hues
-            while (colors.length < size) {
-                const remaining = size - colors.length;
-                const originalHues = [h, h2, h3].slice(0, Math.min(size, 3));
-                const hueIndex = (colors.length - 1) % originalHues.length;
-                const baseL = hexToHsl(colors[0])[2]; // Use original base lightness
-                const deltaL = 20; // Lightness step
-                const sign = (Math.floor((colors.length - 1) / originalHues.length) % 2 === 0) ? 1 : -1; // Alternate tint/shade
-                const newL = baseL + sign * deltaL * (Math.floor((colors.length - 1) / originalHues.length) + 1);
-                colors.push(hslToHex(originalHues[hueIndex], s, Math.max(10, Math.min(90, newL))));
+            const baseHues = [h, h2, h3];
+            for (let i = 0; i < size; i++) {
+                const hueIndex = i % 3;
+                const currentBaseH = baseHues[hueIndex];
+                // Add tints/shades alternatingly for each base hue
+                let newL = l;
+                if (i >= 3) {
+                    const step = Math.ceil((i - 2) / 2) * 15; // 15, 15, 30, 30, etc.
+                    newL = (i % 2 === 1) ? l + step : l - step; // Alternate tint/shade
+                }
+                colors.push(hslToHex(currentBaseH, s, Math.max(5, Math.min(95, newL))));
             }
+            // Ensure colors are somewhat distinct and size is met
+            while (colors.length > size) colors.pop();
             break;
-
         case 'monochromatic':
-            // Generate shades and tints of the base color
-            const stepL = 100 / (size + 1); // Divide lightness range
-            // Add tints (lighter colors)
-            for (let i = 1; i <= size / 2; i++) {
-                const newL = l + i * stepL;
-                colors.push(hslToHex(h, s, Math.min(100, newL)));
+            colors.push(baseHex);
+            const stepL = 100 / (size); // Divide lightness range based on size
+            for (let i = 1; i < size; i++) {
+                // Alternate adding a tint and a shade, moving away from the base L
+                const sign = (i % 2 === 1) ? 1 : -1;
+                const newL = l + sign * Math.ceil(i / 2) * stepL * 0.8; // Use a factor (0.8) to avoid pure white/black quickly
+                colors.push(hslToHex(h, s, Math.max(5, Math.min(95, newL)))); // Clamp lightness
             }
-            // Add shades (darker colors)
-            for (let i = 1; i <= size / 2 + (size % 2 === 1 ? 1 : 0); i++) {
-                if (colors.length >= size) break;
-                const newL = l - i * stepL;
-                colors.push(hslToHex(h, s, Math.max(0, newL)));
-            }
-            // Sort by lightness for better visual flow (optional)
+            // Sort by lightness for visual flow
             colors.sort((c1, c2) => hexToHsl(c2)[2] - hexToHsl(c1)[2]);
             break;
-
-        default: // Fallback to a simple complementary + shades/tints
-            if (size > 1) colors.push(hslToHex(ensureHue(h + 180), s, l));
-            while (colors.length < size) {
-                const delta = (colors.length % 2 === 0 ? -1 : 1) * Math.ceil(colors.length / 2) * 15;
-                colors.push(hslToHex(ensureHue(h + (colors.length % 2 === 0 ? 0 : 180)), s, Math.max(10, Math.min(90, l + delta))));
-            }
-            break;
+        default: // Should not happen with select, but as a fallback
+            return [baseHex];
     }
-
-    // Ensure we have exactly 'size' colors (trim if needed, shouldn't happen with current logic)
-    return colors.slice(0, size);
+    return colors;
 }
 
 // Function to copy text to clipboard (with fallback)
@@ -235,14 +215,13 @@ const paletteSizeInput = document.getElementById('palette-size');
 const generateButton = document.getElementById('generate-button');
 const exportButton = document.getElementById('export-button');
 const paletteEl = document.getElementById('palette');
-const toastEl = document.getElementById('toast');
 const historySwatchesEl = document.getElementById('history-swatches');
+const paletteEscapeInstructionEl = document.getElementById('palette-escape-instruction'); // Get instruction div
 
 // State Variables
 const DEFAULT_COLOR = '#3b82f6'; // A nice starting blue
-let currentHex = DEFAULT_COLOR;
-let currentHSL = hexToHsl(DEFAULT_COLOR); // Store current HSL
-let isColorLocked = false; // Renamed from isColorLocked, still represents a user-selected 'base' color
+let currentHex = DEFAULT_COLOR; // The currently SELECTED color (via click, slider, history, load)
+let currentHSL = hexToHsl(DEFAULT_COLOR);
 const HISTORY_MAX_SIZE = 10;
 let colorHistory = [];
 let currentPalette = []; // Store the currently displayed palette
@@ -253,28 +232,27 @@ const LS_KEY_HISTORY = 'paletteMakerHistory';
 const LS_KEY_PALETTE = 'paletteMakerPalette';
 
 // Function to update the preview area with current color info
+// Called whenever currentHex or currentHSL changes (by selection)
 function updatePreview(hexColor) {
     const { r, g, b } = hexToRgb(hexColor);
     const [h, s, l] = hexToHsl(hexColor);
-
     previewEl.style.background = hexColor;
     const textColor = getTextColor(hexColor);
-
     previewTextHexEl.style.color = textColor;
     previewTextRgbEl.style.color = textColor;
     previewTextHslEl.style.color = textColor;
-
     previewTextHexEl.textContent = hexColor.toUpperCase();
-    previewTextRgbEl.textContent = `RGB(${r}, ${g}, ${b})`;
-    previewTextHslEl.textContent = `HSL(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+    previewTextRgbEl.textContent = rgbToString(r, g, b);
+    previewTextHslEl.textContent = hslToString(h, s, l);
 }
 
 // Function to update the HSL sliders and their value spans
+// Called whenever currentHSL changes (by selection)
 function updateSliders(h, s, l) {
-    hueSlider.value = h;
-    saturationSlider.value = s;
-    lightnessSlider.value = l;
-
+    // Ensure values are within bounds before setting slider
+    hueSlider.value = Math.max(0, Math.min(360, h));
+    saturationSlider.value = Math.max(0, Math.min(100, s));
+    lightnessSlider.value = Math.max(0, Math.min(100, l));
     hueValueSpan.textContent = Math.round(h);
     saturationValueSpan.textContent = Math.round(s);
     lightnessValueSpan.textContent = Math.round(l);
@@ -289,15 +267,17 @@ function renderHistory() {
         swatch.style.background = hex;
         swatch.title = hex.toUpperCase(); // Add tooltip
         swatch.setAttribute('tabindex', '0'); // Make it focusable
+        swatch.setAttribute('role', 'button'); // Indicate it's interactive
+        swatch.setAttribute('aria-label', `Select color ${hex.toUpperCase()}`); // Accessibility label
         swatch.addEventListener('click', () => {
             selectColor(hex); // Select this color
             addToHistory(hex); // Add back to history (moves it to front)
         });
         swatch.addEventListener('keydown', (event) => {
+            // Allow Enter or Space to trigger click
             if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault(); // Prevent default space/enter behavior
-                selectColor(hex);
-                addToHistory(hex);
+                event.preventDefault();
+                swatch.click();
             }
         });
         historySwatchesEl.appendChild(swatch);
@@ -317,22 +297,21 @@ function addToHistory(hexColor) {
     saveState(); // Save history to local storage
 }
 
-// Function to select a color and update all relevant UI parts
+// Function to select a color and update all relevant UI parts and state
+// This is the single point of truth for changing the primary selected color
 function selectColor(hexColor) {
     currentHex = hexColor;
-    currentHSL = hexToHsl(currentHex);
+    currentHSL = hexToHsl(currentHex); // Update HSL state from Hex
     updatePreview(currentHex);
     updateSliders(currentHSL[0], currentHSL[1], currentHSL[2]);
-    previewEl.classList.add('locked'); // Mark as selected/locked
+    previewEl.classList.add('locked'); // Indicate a color is selected/locked
     saveState(); // Save selected color to local storage
 }
 
-// Function to reset the color selection state
+// Function to reset the color selection state (unlock preview)
 function resetColorSelection() {
-    isColorLocked = false;
     previewEl.classList.remove('locked');
-    // Don't reset currentHex/HSL/Sliders here, keep the last selected color
-    // We only remove the "locked" state indicator.
+    // Keep the last selected color and its state (currentHex, currentHSL, sliders)
 }
 
 // Function to save state to Local Storage
@@ -358,23 +337,22 @@ function loadState() {
         const savedBaseColor = localStorage.getItem(LS_KEY_BASE_COLOR);
         const savedHistory = localStorage.getItem(LS_KEY_HISTORY);
         const savedPalette = localStorage.getItem(LS_KEY_PALETTE);
-
+        // Load base color first
         if (savedBaseColor && savedBaseColor.startsWith('#')) {
-            selectColor(savedBaseColor);
+            selectColor(savedBaseColor); // This updates preview and sliders
         } else {
             selectColor(DEFAULT_COLOR); // Fallback to default
         }
-
+        // Load history
         if (savedHistory) {
             colorHistory = JSON.parse(savedHistory);
             renderHistory();
         }
-
+        // Load palette
         if (savedPalette) {
             currentPalette = JSON.parse(savedPalette);
             displayPalette(currentPalette, false); // Display saved palette without animation
         }
-
     } catch (e) {
         console.error("Error loading from Local Storage:", e);
         // Clear potentially corrupted storage
@@ -390,124 +368,150 @@ function loadState() {
 
 // Function to display the generated palette
 function displayPalette(colors, animate = true) {
-    currentPalette = colors; // Store the displayed palette
+    currentPalette = [...colors]; // Store a copy of the displayed palette array
     paletteEl.innerHTML = ''; // Clear previous content
-
-    // Create and append the instruction text div
-    const instructionDiv = document.createElement('div');
-    instructionDiv.className = 'palette-escape-instruction';
-    instructionDiv.textContent = 'Press ESC to choose another color';
-    paletteEl.appendChild(instructionDiv);
-
-    // Then, create and append the color bars
-    colors.forEach((color, i) => {
+    // Re-append the instruction div as innerHTML clears everything
+    paletteEl.appendChild(paletteEscapeInstructionEl);
+    // Create and append the color bars
+    currentPalette.forEach((color, i) => { // Use currentPalette state array
         const { r, g, b } = hexToRgb(color);
         const [h, s, l] = hexToHsl(color);
         const textColor = getTextColor(color);
-
+        const glowColor = getGlowColor(color);
         const bar = document.createElement('div');
-        bar.className = 'palette-bar'; // Use generic class
+        bar.className = 'palette-bar';
         bar.style.background = color;
         bar.style.color = textColor;
         bar.setAttribute('data-color', color); // Store hex on the element
-
-        // Add color formats
+        bar.setAttribute('tabindex', '0'); // Make bar focusable
+        bar.setAttribute('role', 'button'); // Indicate it's interactive
+        bar.style.setProperty('--glow-color', glowColor); // Set CSS variable for glow color
+        // Container for color formats text (for fading)
+        const colorInfoDiv = document.createElement('div');
+        colorInfoDiv.className = 'color-info';
+        bar.appendChild(colorInfoDiv);
+        // Add color formats spans inside the info container
         const hexSpan = document.createElement('span');
         hexSpan.textContent = color.toUpperCase();
-        hexSpan.style.color = textColor;
-        bar.appendChild(hexSpan);
-
+        hexSpan.style.color = textColor; // Ensure text color is applied
+        colorInfoDiv.appendChild(hexSpan);
         const rgbSpan = document.createElement('span');
-        rgbSpan.textContent = `RGB(${r}, ${g}, ${b})`;
+        rgbSpan.textContent = rgbToString(r, g, b);
         rgbSpan.style.color = textColor;
-        bar.appendChild(rgbSpan);
-
+        colorInfoDiv.appendChild(rgbSpan);
         const hslSpan = document.createElement('span');
-        hslSpan.textContent = `HSL(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+        hslSpan.textContent = hslToString(h, s, l);
         hslSpan.style.color = textColor;
-        bar.appendChild(hslSpan);
-
+        colorInfoDiv.appendChild(hslSpan);
+        // Store original text HTML for fading back
+        bar.originalInfoHTML = colorInfoDiv.innerHTML;
         // Add Remove button
         const removeButton = document.createElement('button');
         removeButton.className = 'remove-color';
         removeButton.textContent = 'X';
         removeButton.title = `Remove ${color.toUpperCase()}`;
-        removeButton.setAttribute('aria-label', `Remove color ${color.toUpperCase()}`);
+        removeButton.setAttribute('aria-label', `Remove color ${color.toUpperCase()} from palette`);
         removeButton.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent click event from bubbling to the bar
             removeColorFromPalette(color);
         });
         bar.appendChild(removeButton);
-
         // Add click listener to copy color
         bar.addEventListener('click', async () => {
-            const success = await copyToClipboard(color);
-            toastEl.textContent = success ? `Copied ${color.toUpperCase()}!` : 'Copy failed!';
-            toastEl.classList.add('show');
-            bar.classList.add('copied'); // Add copied animation class
-            setTimeout(() => {
-                toastEl.classList.remove('show');
-                bar.classList.remove('copied'); // Remove animation class
-            }, 1500);
+            const colorToCopy = bar.getAttribute('data-color');
+            const success = await copyToClipboard(colorToCopy);
+            if (success) {
+                // Handle copy animation and text fade
+                const info = bar.querySelector('.color-info');
+                const originalHTML = bar.originalInfoHTML; // Retrieve stored HTML
+                info.classList.add('fade-out'); // Start fade out original text
+                setTimeout(() => {
+                    // Change text content to "Copied!"
+                    info.innerHTML = `<span style="color: ${textColor}; background: none; padding: 0;">Copied!</span>`; // Add "Copied!" text
+                    info.classList.remove('fade-out');
+                    info.classList.add('fade-in'); // Fade in "Copied!" text
+                    bar.classList.add('copied'); // Start glow animation
+                    // Wait for glow animation and "Copied!" to show, then fade back
+                    setTimeout(() => {
+                        info.classList.remove('fade-in');
+                        info.classList.add('fade-out');
+                        setTimeout(() => {
+                            // Revert text back to original color info
+                            info.innerHTML = originalHTML;
+                            // Reapply text color to spans after resetting innerHTML
+                            info.querySelectorAll('span').forEach(span => span.style.color = textColor);
+                            info.classList.remove('fade-out');
+                            bar.classList.remove('copied'); // Remove glow class
+                        }, 300); // Match fade-out duration
+                    }, 700); // Wait for a moment after "Copied!" fades in and glow starts
+                }, 300); // Match fade-out duration
+            }
         });
-
         paletteEl.appendChild(bar); // Append color bar
-
         // Staggered animation for showing bars
         if (animate) {
             requestAnimationFrame(() => {
-                setTimeout(() => bar.classList.add('show'), i * 70); // Slightly faster animation
+                setTimeout(() => bar.classList.add('show'), i * 60); // Slightly faster animation
             });
         } else {
             bar.classList.add('show'); // Show instantly if not animating
         }
     });
-
     paletteEl.style.display = 'flex'; // Show the palette container
     saveState(); // Save the displayed palette
 }
 
 // Function to remove a color from the current palette
 function removeColorFromPalette(hexColor) {
+    // Filter the currentPalette array state
     currentPalette = currentPalette.filter(color => color.toLowerCase() !== hexColor.toLowerCase());
     // Re-display the palette from the updated array
     displayPalette(currentPalette, false); // No animation on removal update
     // If the palette is empty, hide it
     if (currentPalette.length === 0) {
         paletteEl.style.display = 'none';
-        resetColorSelection(); // Also reset selection state if palette is closed
+        resetColorSelection(); // Reset selection state indicators if palette is closed
     }
     saveState(); // Save updated palette
 }
 
 // --- Event Listeners ---
-
 // Event Listener: Load state when DOM is ready
 document.addEventListener('DOMContentLoaded', loadState);
 
 // Event Listener: Gradient Mouse Move (for hover preview)
 gradientEl.addEventListener('mousemove', e => {
-    if (previewEl.classList.contains('locked')) { // Check locked class instead of state var
+    // Only show temporary hover preview if a color is NOT locked (selected)
+    if (previewEl.classList.contains('locked')) {
         return;
     }
     const rect = gradientEl.getBoundingClientRect();
     let x = e.clientX - rect.left; let y = e.clientY - rect.top;
     x = Math.max(0, Math.min(x, rect.width)); y = Math.max(0, Math.min(y, rect.height));
-
-    const { h, s, l } = getColorAtPosition(x, y, rect.width, rect.height);
+    const { h, s, l } = getHSLAtPosition(x, y, rect.width, rect.height);
     const hoverHex = hslToHex(h, s, l);
-
-    updatePreview(hoverHex);
-    // Optionally update sliders on hover? Might be too jumpy. Let's skip for now.
-    // updateSliders(h, s, l);
+    const { r, g, b } = hexToRgb(hoverHex);
+    const textColor = getTextColor(hoverHex);
+    // Update preview element styles and text content directly (temporary)
+    previewEl.style.background = hoverHex;
+    previewTextHexEl.style.color = textColor;
+    previewTextRgbEl.style.color = textColor;
+    previewTextHslEl.style.color = textColor;
+    previewTextHexEl.textContent = hoverHex.toUpperCase();
+    previewTextRgbEl.textContent = rgbToString(r, g, b);
+    previewTextHslEl.textContent = hslToString(h, s, l);
+    // Do NOT update currentHex, currentHSL, or sliders here
 });
 
 // Event Listener: Gradient Mouse Leave (reset preview if not locked)
 gradientEl.addEventListener('mouseleave', () => {
+    // If a color is not locked, revert the preview to the current selected color state
     if (!previewEl.classList.contains('locked')) {
-        // Revert preview to the last selected color (which is stored in currentHex)
-        updatePreview(currentHex);
+        updatePreview(currentHex); // Revert preview using the actual state
+        // Also ensure sliders reflect the actual state color
+        updateSliders(currentHSL[0], currentHSL[1], currentHSL[2]);
     }
+    // If it *is* locked, do nothing on mouseleave, preview stays on the locked color
 });
 
 // Event Listener: Gradient Click (to select/lock color)
@@ -515,11 +519,9 @@ gradientEl.addEventListener('click', e => {
     const rect = gradientEl.getBoundingClientRect();
     let x = e.clientX - rect.left; let y = e.clientY - rect.top;
     x = Math.max(0, Math.min(x, rect.width)); y = Math.max(0, Math.min(y, rect.height));
-
-    const { h, s, l } = getColorAtPosition(x, y, rect.width, rect.height);
+    const { h, s, l } = getHSLAtPosition(x, y, rect.width, rect.height);
     const clickedHex = hslToHex(h, s, l);
-
-    selectColor(clickedHex); // Select the color
+    selectColor(clickedHex); // Select the color (updates state, preview, sliders)
     addToHistory(clickedHex); // Add to history
 });
 
@@ -529,11 +531,11 @@ hueSlider.addEventListener('input', () => {
     const s = parseFloat(saturationSlider.value);
     const l = parseFloat(lightnessSlider.value);
     const newHex = hslToHex(h, s, l);
-    currentHex = newHex; // Update currentHex
-    currentHSL = [h, s, l]; // Update currentHSL
-    updatePreview(newHex);
-    hueValueSpan.textContent = Math.round(h);
-    resetColorSelection(); // Changing slider 'unlocks' the gradient preview
+    currentHex = newHex; // Update currentHex state
+    currentHSL = [h, s, l]; // Update currentHSL state
+    updatePreview(newHex); // Update preview display
+    hueValueSpan.textContent = Math.round(h); // Update slider value display
+    resetColorSelection(); // Unlock preview state
     saveState(); // Save selection
 });
 
@@ -563,12 +565,41 @@ lightnessSlider.addEventListener('input', () => {
     saveState();
 });
 
+// Event Listener: Prevent typing in palette size input, only allow arrows
+paletteSizeInput.addEventListener('keydown', (event) => {
+    // Allow arrow keys, tab, enter, delete, backspace, home, end
+    if (['ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Delete', 'Backspace', 'Home', 'End'].includes(event.key)) {
+        // Allow these keys
+        return;
+    }
+    // Prevent any other key press (like typing numbers)
+    if (!/^\d$/.test(event.key)) { // Regex to check if key is a digit
+        event.preventDefault();
+    }
+});
+
+// Event Listener: Clamp palette size value on input (handles paste or edge cases)
+paletteSizeInput.addEventListener('input', () => {
+    let value = parseInt(paletteSizeInput.value, 10);
+    const min = parseInt(paletteSizeInput.min, 10);
+    const max = parseInt(paletteSizeInput.max, 10);
+    if (isNaN(value)) {
+        paletteSizeInput.value = min; // Default to min if input is not a number
+    } else if (value < min) {
+        paletteSizeInput.value = min;
+    } else if (value > max) {
+        paletteSizeInput.value = max;
+    }
+});
+
 // Event Listener: "Generate Palette" Button Click
 generateButton.addEventListener('click', () => {
     const selectedRule = harmonyRuleSelect.value;
     const paletteSize = parseInt(paletteSizeInput.value, 10);
+    // Re-validate size just in case
     if (isNaN(paletteSize) || paletteSize < 2 || paletteSize > 10) {
-        alert('Please enter a palette size between 2 and 10.');
+        // This should ideally not happen if input type="number" and clamp logic work
+        console.error("Invalid palette size:", paletteSize);
         return;
     }
     const colors = generatePalette(currentHex, selectedRule, paletteSize);
@@ -579,7 +610,7 @@ generateButton.addEventListener('click', () => {
 // Event Listener: "Export Palette" Button Click
 exportButton.addEventListener('click', () => {
     if (currentPalette.length === 0) {
-        alert('Generate a palette first!');
+        alert('Generate a palette first!'); // Simple alert for now
         return;
     }
     const paletteText = currentPalette.join('\n'); // Join colors with newlines
@@ -588,17 +619,17 @@ exportButton.addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'color_palette.txt';
-    document.body.appendChild(a);
+    document.body.appendChild(a); // Required for Firefox
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url); // Clean up
+    document.body.removeChild(a); // Clean up
+    URL.revokeObjectURL(url); // Clean up the URL object
 });
 
-// Event Listener: Keyboard Press (for ESC key)
+// Event Listener: Keyboard Press (for ESC key to close palette)
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && paletteEl.style.display === 'flex') {
     paletteEl.style.display = 'none';
-    resetColorSelection(); // Reset color selection state when ESC is pressed
-    saveState(); // Save state (this will clear the saved palette if it's hidden)
+    resetColorSelection(); // Reset color selection state indicators when ESC is pressed
+    saveState(); // Save state (this will clear the saved palette in LS if it's hidden)
   }
 });

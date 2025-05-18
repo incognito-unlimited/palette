@@ -1,19 +1,21 @@
+/* Minimalist System Font Stack */
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   background: linear-gradient(45deg, #3b82f6, #a78bfa, #ec4899, #22d3ee);
   background-size: 400%;
-  animation: gradient 15s ease infinite;
+  animation: gradientBackground 15s ease infinite; /* Renamed animation */
   margin: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Align items from the top */
   align-items: center;
-  padding: 20px; /* Add padding around the content */
+  padding: 20px;
   box-sizing: border-box;
+  color: #1f2937; /* Default text color */
+  line-height: 1.5;
 }
 
-@keyframes gradient {
+@keyframes gradientBackground { /* Renamed animation */
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
@@ -22,23 +24,23 @@ body {
 h1.main-title {
     text-align: center;
     color: white;
-    font-size: 2.5em;
-    margin-bottom: 30px;
-    font-weight: 600;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    width: 100%; /* Ensure title spans available width */
+    font-size: 3em; /* Slightly larger */
+    margin-bottom: 20px; /* Reduced margin */
+    font-weight: normal; /* Minimalist font weight */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2); /* Subtle shadow */
+    padding: 0 10px; /* Prevent hitting edges on small screens */
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Align items to the top */
-  gap: 30px; /* Increased gap */
-  flex-wrap: wrap;
-  padding: 20px;
-  width: 100%; /* Allow container to take up width */
-  max-width: 900px; /* Max width for larger screens */
-  box-sizing: border-box;
+/* Main layout container for gradient, controls, history, export */
+.main-content-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap */
+    justify-content: center;
+    gap: 30px; /* Space between major sections */
+    width: 100%;
+    max-width: 960px; /* Increased max width */
+    padding: 0 20px; /* Padding on sides */
+    box-sizing: border-box;
 }
 
 .gradient-container {
@@ -46,6 +48,8 @@ h1.main-title {
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0; /* Prevent shrinking */
+    width: 300px; /* Fixed width on desktop */
 }
 
 .rgb-gradient {
@@ -60,12 +64,13 @@ h1.main-title {
       hsl(120, 100%, 50%), hsl(150, 100%, 50%), hsl(180, 100%, 50%), hsl(210, 100%, 50%),
       hsl(240, 100%, 50%), hsl(270, 100%, 50%), hsl(300, 100%, 50%), hsl(330, 100%, 50%),
       hsl(360, 100%, 50%));
-  outline: 2px solid transparent; /* Add outline for focus state */
+  outline: 2px solid transparent;
   transition: outline-color 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Subtle shadow */
 }
 
 .rgb-gradient:focus {
-    outline-color: #2563eb; /* Blue outline on focus */
+    outline-color: rgba(255, 255, 255, 0.5); /* Whiteish outline on focus */
 }
 
 .rgb-gradient::after {
@@ -77,7 +82,7 @@ h1.main-title {
 
 .gradient-legend {
     font-size: 0.9em;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
     text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     text-align: center;
 }
@@ -86,125 +91,120 @@ h1.main-title {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 300px; /* Match gradient width for alignment */
+    flex-grow: 1; /* Allow controls to grow */
+    max-width: 400px; /* Max width for controls on desktop */
+    min-width: 280px; /* Minimum width before stacking */
 }
 
 .preview {
-  width: 100%; /* Take full width of controls-area */
-  height: 200px; /* Reduced height */
+  width: 100%;
+  height: 180px; /* Further reduced height */
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #e5e7eb;
-  transition: background 0.1s, box-shadow 0.3s, outline 0.3s;
-  padding: 15px; /* Adjusted padding */
+  background: #e5e7eb; /* Default background */
+  transition: background 0.2s ease, box-shadow 0.3s ease, outline 0.3s ease;
+  padding: 15px;
   box-sizing: border-box;
-  outline: 3px solid transparent;
-  cursor: default; /* Not clickable itself */
+  outline: 2px solid transparent; /* Slightly thinner outline */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* Subtle shadow */
 }
 
 .preview.locked {
-    outline: 3px solid #1D4ED8; /* Tailwind's blue-700 */
-    box-shadow: 0 0 12px rgba(29, 78, 216, 0.6); /* Glow effect */
+    outline: 2px solid rgba(255, 255, 255, 0.8); /* Whiteish outline for selected */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* Subtle white glow */
 }
 
 .preview-text {
-    margin: 2px 0; /* Smaller margin between lines */
-    font-size: 14px; /* Slightly smaller font */
-    color: #1f2937;
+    margin: 1px 0; /* Even smaller margin */
+    font-size: 0.9em; /* Relative font size */
     font-weight: 600;
-    background-color: rgba(255,255,255,0.75);
-    padding: 3px 8px; /* Adjusted padding */
+    background-color: rgba(255,255,255,0.8); /* Slightly more opaque background */
+    padding: 2px 6px; /* Adjusted padding */
     border-radius: 4px;
     text-align: center;
-    max-width: 100%; /* Prevent text overflow */
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: inherit; /* Inherit color from JS */
 }
 
 /* HSL Sliders Styling */
 .hsl-sliders {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px; /* Reduced gap */
     width: 100%;
-    padding: 0 10px; /* Add padding to align with other controls */
-    box-sizing: border-box;
 }
 
 .slider-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .slider-group label {
-    font-size: 1em;
-    color: white;
-    font-weight: 600;
-    width: 15px; /* Fixed width for labels */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-}
-
-.slider-group input[type="range"] {
-    flex-grow: 1; /* Take available space */
-}
-
-.slider-group span {
     font-size: 0.9em;
     color: white;
-    text-align: right;
-    width: 30px; /* Fixed width for value display */
+    font-weight: normal;
+    width: 15px;
+    text-align: center; /* Center label */
     text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    opacity: 0.9;
 }
 
-/* Basic Range Input Styling (can be enhanced) */
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
-    height: 8px;
+    height: 6px; /* Thinner slider track */
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 5px;
+    border-radius: 3px; /* Smaller radius */
     outline: none;
-    transition: opacity .2s;
-    opacity: 0.9;
     cursor: pointer;
-}
-
-input[type="range"]:hover {
-    opacity: 1;
+    flex-grow: 1;
+    margin: 0; /* Remove default margin */
 }
 
 input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 16px; /* Smaller thumb */
+    height: 16px; /* Smaller thumb */
     background: #fff;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3); /* Subtle shadow */
+    margin-top: -5px; /* Adjust to center thumb on track */
+    border: 1px solid rgba(0,0,0,0.1); /* Subtle border */
 }
 
 input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     background: #fff;
     border-radius: 50%;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.slider-value {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: right;
+    width: 30px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    font-weight: normal;
 }
 
 /* Palette Controls */
 .palette-controls {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
-    padding: 0 10px; /* Add padding */
-    box-sizing: border-box;
 }
 
 .control-group {
@@ -214,178 +214,261 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .control-group label {
-    font-size: 1em;
-    color: white;
-    font-weight: 600;
-    width: 70px; /* Fixed width for labels */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-}
-
-.control-group select,
-.control-group input[type="number"] {
-    flex-grow: 1;
-    padding: 8px;
-    border-radius: 4px;
-    border: none;
-    font-family: 'Poppins', sans-serif;
     font-size: 0.9em;
-    background-color: rgba(255, 255, 255, 0.9);
-    outline: 2px solid transparent;
-    transition: outline-color 0.2s ease;
+    color: white;
+    font-weight: normal;
+    width: 60px; /* Adjusted label width */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    opacity: 0.9;
 }
 
-.control-group select:focus,
-.control-group input[type="number"]:focus,
-.save-button:focus,
-.history-swatch:focus { /* Added focus styles */
-    outline-color: #2563eb;
+/* Custom Select and Number Input Styling */
+.select-wrapper {
+    position: relative;
+    flex-grow: 1;
+    background-color: rgba(255, 255, 255, 0.95); /* Slightly more opaque */
+    border-radius: 4px;
+    overflow: hidden; /* Hide default arrow */
+}
+
+.select-wrapper select,
+input[type="number"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 8px 12px; /* Adjusted padding */
+    border: none;
+    background: transparent; /* Make select background transparent */
+    font-family: inherit;
+    font-size: 0.9em;
+    color: #1f2937;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Add a custom arrow for select */
+.select-wrapper::after {
+    content: '▼'; /* Unicode down arrow */
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+    color: #1f2937;
+    pointer-events: none; /* Allow clicks to pass through */
+}
+
+input[type="number"] {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    /* Remove default number input arrows */
+    -webkit-outer-spin-button,
+    -webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    /* Firefox */
+    -moz-appearance: textfield;
+    text-align: center; /* Center the number */
+}
+
+/* Ensure focus style applies to wrapper for select */
+.select-wrapper:focus-within {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+input[type="number"]:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
 /* Buttons */
-.save-button {
-    width: calc(100% - 20px); /* Take full width minus padding */
-    margin: 0 10px; /* Center with padding */
+.action-button {
+    width: 100%;
     padding: 12px 24px;
     border: none;
-    background: #3b82f6;
-    color: white;
+    background: rgba(255, 255, 255, 0.95); /* Light background */
+    color: #1f2937; /* Dark text */
     border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
     font-size: 1em;
     font-weight: 600;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-    outline: none; /* Removed default outline */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    outline: none;
 }
 
-.save-button:hover { background: #2563eb; }
-.save-button:active { transform: scale(0.98); }
+.action-button:hover {
+    background: #fff; /* Slightly lighter on hover */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.action-button:active { transform: scale(0.98); }
+.action-button:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.generate-button { margin-top: 10px; } /* Add space above generate */
+.export-button { margin-top: 0px; } /* Positioned in wrapper */
 
 /* History Area */
 .history-area {
-    margin-top: 30px;
+    margin-top: 20px; /* Space above history */
     width: 100%;
-    max-width: 900px;
+    max-width: 740px; /* Align width with combined gradient+controls */
     box-sizing: border-box;
-    padding: 0 20px; /* Match container padding */
     text-align: center;
+    flex-basis: 100%; /* Take full row */
 }
 
 .history-area h2 {
     color: white;
-    font-size: 1.8em;
-    margin-bottom: 15px;
+    font-size: 1.5em; /* Smaller history title */
+    margin-bottom: 10px; /* Reduced margin */
     text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    font-weight: normal;
 }
 
 .history-swatches {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 10px;
+    gap: 8px; /* Reduced gap */
 }
 
 .history-swatch {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
+    width: 35px; /* Slightly smaller */
+    height: 35px; /* Slightly smaller */
+    border-radius: 5px; /* Smaller radius */
     cursor: pointer;
-    transition: transform 0.1s ease, box-shadow 0.2s ease;
-    border: 2px solid rgba(255, 255, 255, 0.5); /* Add border */
-    outline: 2px solid transparent; /* Add outline for focus */
-    outline-offset: 2px; /* Space between border and outline */
-    box-sizing: border-box; /* Include border and outline in element's total width and height */
+    transition: transform 0.1s ease, box-shadow 0.2s ease, outline-color 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Thinner border */
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-sizing: border-box;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 .history-swatch:hover {
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    transform: scale(1.05); /* Subtle scale */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .history-swatch:focus {
-    outline-color: #2563eb;
+    outline-color: rgba(255, 255, 255, 0.8);
+}
+
+.export-button {
+    margin-top: 20px; /* Space above export button */
+    flex-basis: 100%; /* Take full row */
+    max-width: 740px; /* Match history width */
 }
 
 /* Fullscreen Palette Overlay */
 .palette {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  display: none; /* Start hidden */
+  display: none;
   flex-direction: column;
-  background-color: rgba(0,0,0,0.85); /* Darker overlay */
+  background-color: rgba(0,0,0,0.9); /* Darker, more minimal overlay */
   z-index: 1000;
   box-sizing: border-box;
-  overflow-y: auto; /* Add scroll for many colors */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .palette-bar {
-  flex: 1; /* Each bar takes equal vertical space */
-  min-height: 50px; /* Minimum height for a bar */
+  flex: 1;
+  min-height: 60px; /* Slightly taller bars */
   display: flex;
-  flex-direction: column; /* Stack text elements vertically */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 1em; /* Adjusted font size */
+  font-size: 1em;
   cursor: pointer;
   position: relative;
-  transition: opacity 0.5s ease-in-out, background-color 0.3s ease, filter 0.2s ease;
-  opacity: 0; /* Start invisible for animation */
+  transition: opacity 0.5s ease-in-out, filter 0.2s ease;
+  opacity: 0;
   font-weight: 600;
-  color: white; /* Will be overridden by JS based on luminance */
+  color: white; /* JS sets this based on luminance */
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  padding: 10px; /* Added padding */
+  padding: 10px;
   box-sizing: border-box;
+  overflow: hidden; /* Hide anything outside */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle separator */
+}
+
+.palette-bar:last-child {
+    border-bottom: none; /* No border on the last one */
 }
 
 .palette-bar:hover {
-    filter: brightness(1.15);
+    filter: brightness(1.05); /* Subtle hover effect */
 }
 
 .palette-bar.show {
   opacity: 1;
 }
 
-/* Individual text lines within palette bar */
-.palette-bar span {
-    display: block; /* Make each color format a new line */
-    font-size: 0.8em; /* Smaller font for formats */
-    margin: 2px 0;
-    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent background for readability */
-    padding: 2px 5px;
-    border-radius: 3px;
+/* Container for the color info text inside bar */
+.color-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%; /* Take full height of the bar */
+    transition: opacity 0.3s ease; /* Fade transition for text */
 }
 
-/* Copy Feedback Animation */
-@keyframes copiedHighlight {
-  0% { box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.7); }
-  50% { box-shadow: inset 0 0 20px 5px rgba(255, 255, 255, 0.7); }
-  100% { box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.7); }
+.color-info span {
+    display: block;
+    font-size: 0.85em; /* Adjusted font size */
+    margin: 1px 0; /* Reduced margin */
+    background-color: rgba(255, 255, 255, 0.15); /* Lighter background */
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-align: center;
+}
+
+/* Text fade animation */
+.color-info.fade-out { opacity: 0; }
+.color-info.fade-in { opacity: 1; }
+
+/* Copy Glow Animation (dynamic color applied via JS inline style) */
+@keyframes copiedGlow {
+  0% { box-shadow: inset 0 0 0px 0px var(--glow-color, rgba(255, 255, 255, 0.5)); }
+  50% { box-shadow: inset 0 0 30px 8px var(--glow-color, rgba(255, 255, 255, 0.5)); } /* Larger glow */
+  100% { box-shadow: inset 0 0 0px 0px var(--glow-color, rgba(255, 255, 255, 0.5)); }
 }
 
 .palette-bar.copied {
-    animation: copiedHighlight 1s ease-out;
+    animation: copiedGlow 1s ease-out forwards; /* Keep last frame */
 }
 
 /* Remove Button on Palette Bar */
 .remove-color {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(255, 0, 0, 0.6);
+    top: 8px; /* Adjusted position */
+    right: 8px; /* Adjusted position */
+    background: rgba(255, 0, 0, 0.7); /* Slightly more opaque red */
     color: white;
     border: none;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
+    border-radius: 50%; /* Circle button */
+    width: 22px; /* Larger */
+    height: 22px; /* Larger */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.9em;
+    font-size: 1em; /* Larger font */
     cursor: pointer;
     opacity: 0; /* Hide by default */
     transition: background 0.2s ease, opacity 0.2s ease;
-    line-height: 1; /* Prevent extra space */
+    line-height: 1;
     padding: 0;
+    z-index: 1; /* Ensure button is above text */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 .palette-bar:hover .remove-color {
@@ -393,99 +476,99 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .remove-color:hover {
-    background: rgba(255, 0, 0, 0.9);
+    background: rgba(255, 0, 0, 1); /* Solid red on hover */
+}
+.remove-color:focus { /* Add focus style */
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    outline-offset: 2px;
 }
 
 /* Escape Instruction on Palette Overlay */
 .palette-escape-instruction {
-    position: sticky; /* Keep it visible when scrolling */
-    top: 0; /* Stick to the top */
+    position: sticky;
+    top: 0;
     left: 50%;
     transform: translateX(-50%);
-    color: #f0f0f0;
-    font-size: 1em; /* Slightly larger font */
-    padding: 10px 20px; /* More padding */
-    background-color: rgba(0, 0, 0, 0.6); /* Darker background */
-    border-radius: 0 0 8px 8px; /* Rounded bottom corners */
+    color: #e0e0e0; /* Lighter text */
+    font-size: 0.9em; /* Slightly smaller */
+    padding: 8px 16px; /* Adjusted padding */
+    background-color: rgba(0, 0, 0, 0.7); /* More opaque */
+    border-radius: 0 0 8px 8px;
     text-align: center;
-    z-index: 1002; /* Above palette bars */
-    width: fit-content; /* Fit to content */
-    margin-bottom: 10px; /* Space below instruction */
+    z-index: 1002;
+    width: fit-content;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
-/* Toast Notification */
-.toast {
-  position: fixed;
-  bottom: 20px; left: 50%;
-  transform: translateX(-50%);
-  background: #1f2937;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 8px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1001;
-  pointer-events: none; /* Don't block clicks */
+/* Hide default number input arrows */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.toast.show { opacity: 1; }
+input[type=number] {
+  -moz-appearance: textfield; /* Firefox */
+}
 
 /* Media Queries for Responsiveness */
-@media (max-width: 768px) { /* Adjusted breakpoint */
+@media (max-width: 768px) {
+    body { padding: 10px; }
     h1.main-title {
         font-size: 2em;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
-    .container {
-        flex-direction: column;
-        align-items: center;
+    .main-content-wrapper {
         gap: 20px;
-        padding: 10px;
-    }
-    .rgb-gradient, .controls-area {
-        width: 100%; /* Take full width */
-        max-width: 300px; /* Still limit max width */
-    }
-    .gradient-legend {
-        font-size: 0.8em;
-    }
-    .preview {
-        height: 150px; /* Further reduce preview height */
-        padding: 10px;
-    }
-    .preview-text {
-        font-size: 12px; /* Smaller text in preview */
-    }
-    .hsl-sliders, .palette-controls {
-        padding: 0; /* Remove internal padding */
-    }
-    .slider-group label, .control-group label {
-        width: auto; /* Auto width for smaller screens */
-        margin-right: 5px;
-    }
-    .save-button {
-        width: 100%; /* Full width button */
-        margin: 0;
-    }
-    .history-area {
         padding: 0 10px;
     }
-    .history-area h2 {
-        font-size: 1.5em;
+    .gradient-container, .controls-area {
+        width: 100%; /* Stack columns */
+        max-width: 320px; /* Limit max width */
     }
-    .history-swatch {
-        width: 30px;
-        height: 30px;
+    .rgb-gradient {
+        width: 100%;
+        height: auto; /* Allow height to scale with width */
+        padding-top: 100%; /* Maintain 1:1 aspect ratio */
+        position: relative; /* Needed for padding hack */
     }
-    .palette-bar {
-        font-size: 0.9em;
-        padding: 8px;
+    .rgb-gradient::after { /* Make sure pseudo-element covers the area */
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
     }
-    .palette-bar span {
-        font-size: 0.7em;
+    .gradient-legend { font-size: 0.8em; }
+    .preview { height: 120px; } /* Further reduce preview height */
+    .preview-text { font-size: 0.8em; }
+    .hsl-sliders, .palette-controls { gap: 6px; } /* Smaller gaps */
+    .slider-group label, .control-group label { width: auto; }
+    .slider-group span.slider-value { width: 25px; }
+    .action-button { padding: 10px 20px; font-size: 0.9em; }
+    .history-area, .export-button {
+        max-width: 100%; /* Take full width on small screens */
+        padding: 0;
+        margin-top: 15px;
     }
-    .palette-escape-instruction {
-        font-size: 0.9em;
-        padding: 8px 16px;
-    }
+    .history-area h2 { font-size: 1.3em; }
+    .history-swatch { width: 30px; height: 30px; }
+    .palette-bar { min-height: 50px; }
+    .palette-bar span { font-size: 0.75em; }
+    .palette-escape-instruction { font-size: 0.85em; }
+    .remove-color { width: 20px; height: 20px; font-size: 0.8em; top: 6px; right: 6px; }
+}
+
+@media (max-width: 480px) {
+    h1.main-title { font-size: 1.8em; }
+    .main-content-wrapper { padding: 0 5px; gap: 15px; }
+    .gradient-container, .controls-area { max-width: 280px; }
+    .rgb-gradient { width: 100%; padding-top: 100%; }
+    .preview { height: 100px; }
+    .preview-text { font-size: 0.7em; padding: 1px 4px; }
+    .slider-group label, .control-group label { font-size: 0.85em; }
+    .slider-value { font-size: 0.8em; width: 20px; }
+    .action-button { font-size: 0.85em; padding: 8px 15px; }
+    .history-area h2 { font-size: 1.2em; }
+    .history-swatch { width: 25px; height: 25px; }
+    .palette-bar span { font-size: 0.7em; padding: 1px 4px;}
+    .palette-escape-instruction { font-size: 0.8em; padding: 6px 12px; }
 }
