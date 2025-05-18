@@ -28,7 +28,7 @@ function hslToString(h, s, l) {
     return `HSL(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
 }
 
-// Helper function: Calculate luminance (0-1) for WCAG
+// Helper function: Calculate luminance (0-1) for WCAG - KEPT FOR GLOW EFFECT
 function getRelativeLuminance(r, g, b) {
     const [rLinear, gLinear, bLinear] = [r, g, b].map(v => {
         v /= 255;
@@ -38,6 +38,7 @@ function getRelativeLuminance(r, g, b) {
 }
 
 // Helper function: Determine text color (dark or light) based on background luminance
+// KEPT for palette bar text color
 function getTextColor(bgColor) {
     const { r, g, b } = hexToRgb(bgColor);
     const luminance = getRelativeLuminance(r, g, b);
@@ -110,6 +111,7 @@ function getHSLAtPosition(x, y, width, height) {
 
 // Function to generate a color palette based on harmony rule and size
 function generatePalette(baseHex, rule, size) {
+    console.log('Generating palette with base:', baseHex, 'rule:', rule, 'size:', size);
     const [h, s, l] = hexToHsl(baseHex);
     const colors = [];
     const ensureHue = hue => (hue % 360 + 360) % 360; // Ensure hue is 0-360
@@ -171,6 +173,7 @@ function generatePalette(baseHex, rule, size) {
         default: // Should not happen with select, but as a fallback
             return [baseHex];
     }
+    console.log('Generated colors:', colors);
     return colors;
 }
 
@@ -217,6 +220,9 @@ const exportButton = document.getElementById('export-button');
 const paletteEl = document.getElementById('palette');
 const historySwatchesEl = document.getElementById('history-swatches');
 const paletteEscapeInstructionEl = document.getElementById('palette-escape-instruction'); // Get instruction div
+const sizeArrowUp = document.querySelector('.number-input-arrows .arrow.up');
+const sizeArrowDown = document.querySelector('.number-input-arrows .arrow.down');
+
 
 // State Variables
 const DEFAULT_COLOR = '#3b82f6'; // A nice starting blue
@@ -237,10 +243,10 @@ function updatePreview(hexColor) {
     const { r, g, b } = hexToRgb(hexColor);
     const [h, s, l] = hexToHsl(hexColor);
     previewEl.style.background = hexColor;
-    const textColor = getTextColor(hexColor);
-    previewTextHexEl.style.color = textColor;
-    previewTextRgbEl.style.color = textColor;
-    previewTextHslEl.style.color = textColor;
+    // Keep text color consistently dark
+    previewTextHexEl.style.color = '#1f2937';
+    previewTextRgbEl.style.color = '#1f2937';
+    previewTextHslEl.style.color = '#1f2937';
     previewTextHexEl.textContent = hexColor.toUpperCase();
     previewTextRgbEl.textContent = rgbToString(r, g, b);
     previewTextHslEl.textContent = hslToString(h, s, l);
@@ -272,6 +278,7 @@ function renderHistory() {
         swatch.addEventListener('click', () => {
             selectColor(hex); // Select this color
             addToHistory(hex); // Add back to history (moves it to front)
+            lockPreview(); // Lock preview when selecting from history
         });
         swatch.addEventListener('keydown', (event) => {
             // Allow Enter or Space to trigger click
@@ -304,8 +311,13 @@ function selectColor(hexColor) {
     currentHSL = hexToHsl(currentHex); // Update HSL state from Hex
     updatePreview(currentHex);
     updateSliders(currentHSL[0], currentHSL[1], currentHSL[2]);
-    previewEl.classList.add('locked'); // Indicate a color is selected/locked
+    // Removed previewEl.classList.add('locked') from here
     saveState(); // Save selected color to local storage
+}
+
+// Function to lock the preview state
+function lockPreview() {
+    previewEl.classList.add('locked');
 }
 
 // Function to reset the color selection state (unlock preview)
@@ -353,6 +365,8 @@ function loadState() {
             currentPalette = JSON.parse(savedPalette);
             displayPalette(currentPalette, false); // Display saved palette without animation
         }
+        // On load, the preview should not be locked initially
+        resetColorSelection();
     } catch (e) {
         console.error("Error loading from Local Storage:", e);
         // Clear potentially corrupted storage
@@ -363,11 +377,21 @@ function loadState() {
         selectColor(DEFAULT_COLOR);
         colorHistory = [];
         renderHistory();
+        resetColorSelection(); // Ensure not locked on failed load
     }
 }
 
 // Function to display the generated palette
 function displayPalette(colors, animate = true) {
+    console.log('Attempting to display palette:', colors);
+    if (!colors || colors.length === 0) {
+        console.log('No colors to display.');
+        paletteEl.style.display = 'none';
+        currentPalette = [];
+        saveState();
+        return;
+    }
+
     currentPalette = [...colors]; // Store a copy of the displayed palette array
     paletteEl.innerHTML = ''; // Clear previous content
     // Re-append the instruction div as innerHTML clears everything
@@ -376,12 +400,12 @@ function displayPalette(colors, animate = true) {
     currentPalette.forEach((color, i) => { // Use currentPalette state array
         const { r, g, b } = hexToRgb(color);
         const [h, s, l] = hexToHsl(color);
-        const textColor = getTextColor(color);
+        const textColor = getTextColor(color); // Keep this for palette bar text color
         const glowColor = getGlowColor(color);
         const bar = document.createElement('div');
         bar.className = 'palette-bar';
         bar.style.background = color;
-        bar.style.color = textColor;
+        bar.style.color = textColor; // Set text color based on luminance for contrast
         bar.setAttribute('data-color', color); // Store hex on the element
         bar.setAttribute('tabindex', '0'); // Make bar focusable
         bar.setAttribute('role', 'button'); // Indicate it's interactive
@@ -393,15 +417,15 @@ function displayPalette(colors, animate = true) {
         // Add color formats spans inside the info container
         const hexSpan = document.createElement('span');
         hexSpan.textContent = color.toUpperCase();
-        hexSpan.style.color = textColor; // Ensure text color is applied
+        // hexSpan.style.color = textColor; // Color is inherited from parent
         colorInfoDiv.appendChild(hexSpan);
         const rgbSpan = document.createElement('span');
         rgbSpan.textContent = rgbToString(r, g, b);
-        rgbSpan.style.color = textColor;
+        // rgbSpan.style.color = textColor; // Color is inherited from parent
         colorInfoDiv.appendChild(rgbSpan);
         const hslSpan = document.createElement('span');
         hslSpan.textContent = hslToString(h, s, l);
-        hslSpan.style.color = textColor;
+        // hslSpan.style.color = textColor; // Color is inherited from parent
         colorInfoDiv.appendChild(hslSpan);
         // Store original text HTML for fading back
         bar.originalInfoHTML = colorInfoDiv.innerHTML;
@@ -427,7 +451,9 @@ function displayPalette(colors, animate = true) {
                 info.classList.add('fade-out'); // Start fade out original text
                 setTimeout(() => {
                     // Change text content to "Copied!"
-                    info.innerHTML = `<span style="color: ${textColor}; background: none; padding: 0;">Copied!</span>`; // Add "Copied!" text
+                    // Ensure the copied text color is based on the bar's background for readability
+                     const currentBarTextColor = bar.style.color;
+                    info.innerHTML = `<span style="color: ${currentBarTextColor}; background: none; padding: 0;">Copied!</span>`; // Add "Copied!" text
                     info.classList.remove('fade-out');
                     info.classList.add('fade-in'); // Fade in "Copied!" text
                     bar.classList.add('copied'); // Start glow animation
@@ -438,8 +464,8 @@ function displayPalette(colors, animate = true) {
                         setTimeout(() => {
                             // Revert text back to original color info
                             info.innerHTML = originalHTML;
-                            // Reapply text color to spans after resetting innerHTML
-                            info.querySelectorAll('span').forEach(span => span.style.color = textColor);
+                             // Reapply text color to spans after resetting innerHTML (inherits from bar)
+                             info.querySelectorAll('span').forEach(span => span.style.color = bar.style.color);
                             info.classList.remove('fade-out');
                             bar.classList.remove('copied'); // Remove glow class
                         }, 300); // Match fade-out duration
@@ -458,6 +484,7 @@ function displayPalette(colors, animate = true) {
         }
     });
     paletteEl.style.display = 'flex'; // Show the palette container
+    console.log('Palette displayed.');
     saveState(); // Save the displayed palette
 }
 
@@ -491,12 +518,14 @@ gradientEl.addEventListener('mousemove', e => {
     const { h, s, l } = getHSLAtPosition(x, y, rect.width, rect.height);
     const hoverHex = hslToHex(h, s, l);
     const { r, g, b } = hexToRgb(hoverHex);
-    const textColor = getTextColor(hoverHex);
+
     // Update preview element styles and text content directly (temporary)
     previewEl.style.background = hoverHex;
-    previewTextHexEl.style.color = textColor;
-    previewTextRgbEl.style.color = textColor;
-    previewTextHslEl.style.color = textColor;
+    // Keep text color consistently dark during hover
+    previewTextHexEl.style.color = '#1f2937';
+    previewTextRgbEl.style.color = '#1f2937';
+    previewTextHslEl.style.color = '#1f2937';
+
     previewTextHexEl.textContent = hoverHex.toUpperCase();
     previewTextRgbEl.textContent = rgbToString(r, g, b);
     previewTextHslEl.textContent = hslToString(h, s, l);
@@ -523,6 +552,7 @@ gradientEl.addEventListener('click', e => {
     const clickedHex = hslToHex(h, s, l);
     selectColor(clickedHex); // Select the color (updates state, preview, sliders)
     addToHistory(clickedHex); // Add to history
+    lockPreview(); // Lock preview when a color is clicked
 });
 
 // Event Listeners for HSL sliders
@@ -535,7 +565,7 @@ hueSlider.addEventListener('input', () => {
     currentHSL = [h, s, l]; // Update currentHSL state
     updatePreview(newHex); // Update preview display
     hueValueSpan.textContent = Math.round(h); // Update slider value display
-    resetColorSelection(); // Unlock preview state
+    resetColorSelection(); // Unlock preview state when adjusting sliders
     saveState(); // Save selection
 });
 
@@ -548,7 +578,7 @@ saturationSlider.addEventListener('input', () => {
     currentHSL = [h, s, l];
     updatePreview(newHex);
     saturationValueSpan.textContent = Math.round(s);
-    resetColorSelection();
+    resetColorSelection(); // Unlock preview state when adjusting sliders
     saveState();
 });
 
@@ -561,24 +591,12 @@ lightnessSlider.addEventListener('input', () => {
     currentHSL = [h, s, l];
     updatePreview(newHex);
     lightnessValueSpan.textContent = Math.round(l);
-    resetColorSelection();
+    resetColorSelection(); // Unlock preview state when adjusting sliders
     saveState();
 });
 
-// Event Listener: Prevent typing in palette size input, only allow arrows
-paletteSizeInput.addEventListener('keydown', (event) => {
-    // Allow arrow keys, tab, enter, delete, backspace, home, end
-    if (['ArrowUp', 'ArrowDown', 'Tab', 'Enter', 'Delete', 'Backspace', 'Home', 'End'].includes(event.key)) {
-        // Allow these keys
-        return;
-    }
-    // Prevent any other key press (like typing numbers)
-    if (!/^\d$/.test(event.key)) { // Regex to check if key is a digit
-        event.preventDefault();
-    }
-});
 
-// Event Listener: Clamp palette size value on input (handles paste or edge cases)
+// Event Listener: Clamp palette size value on input (handles paste or edge cases) - KEPT FOR MANUAL INPUT/PASTE
 paletteSizeInput.addEventListener('input', () => {
     let value = parseInt(paletteSizeInput.value, 10);
     const min = parseInt(paletteSizeInput.min, 10);
@@ -590,21 +608,51 @@ paletteSizeInput.addEventListener('input', () => {
     } else if (value > max) {
         paletteSizeInput.value = max;
     }
+    // Ensure value is an integer if manually typed
+    paletteSizeInput.value = Math.round(parseFloat(paletteSizeInput.value));
 });
+
+// Event Listeners for physical arrows on palette size input
+sizeArrowUp.addEventListener('click', () => {
+    let currentValue = parseInt(paletteSizeInput.value, 10);
+    const max = parseInt(paletteSizeInput.max, 10);
+    if (isNaN(currentValue)) currentValue = parseInt(paletteSizeInput.min, 10) -1; // Handle empty or invalid
+    if (currentValue < max) {
+        paletteSizeInput.value = currentValue + 1;
+         paletteSizeInput.dispatchEvent(new Event('input')); // Trigger input event for clamping/validation
+    }
+});
+
+sizeArrowDown.addEventListener('click', () => {
+    let currentValue = parseInt(paletteSizeInput.value, 10);
+    const min = parseInt(paletteSizeInput.min, 10);
+     if (isNaN(currentValue)) currentValue = parseInt(paletteSizeInput.max, 10) + 1; // Handle empty or invalid
+    if (currentValue > min) {
+        paletteSizeInput.value = currentValue - 1;
+         paletteSizeInput.dispatchEvent(new Event('input')); // Trigger input event for clamping/validation
+    }
+});
+
 
 // Event Listener: "Generate Palette" Button Click
 generateButton.addEventListener('click', () => {
+    console.log('Generate button clicked.');
     const selectedRule = harmonyRuleSelect.value;
     const paletteSize = parseInt(paletteSizeInput.value, 10);
+    console.log('Rule:', selectedRule, 'Size:', paletteSize);
+
     // Re-validate size just in case
     if (isNaN(paletteSize) || paletteSize < 2 || paletteSize > 10) {
-        // This should ideally not happen if input type="number" and clamp logic work
         console.error("Invalid palette size:", paletteSize);
+         alert(`Please select a palette size between ${paletteSizeInput.min} and ${paletteSizeInput.max}.`);
         return;
     }
+
     const colors = generatePalette(currentHex, selectedRule, paletteSize);
+    console.log('Palette generated:', colors);
     displayPalette(colors);
     addToHistory(currentHex); // Add the base color to history when palette is generated
+    lockPreview(); // Keep preview locked when generating a palette
 });
 
 // Event Listener: "Export Palette" Button Click

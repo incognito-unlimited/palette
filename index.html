@@ -50,7 +50,13 @@
         </div>
         <div class="control-group">
           <label for="palette-size">Size</label>
-          <input type="number" id="palette-size" min="2" max="10" value="5" aria-label="Palette size">
+          <div class="palette-size-input-wrapper">
+            <input type="number" id="palette-size" min="2" max="10" value="5" aria-label="Palette size">
+            <div class="number-input-arrows">
+                <button class="arrow up" aria-label="Increase palette size"></button>
+                <button class="arrow down" aria-label="Decrease palette size"></button>
+            </div>
+          </div>
         </div>
       </div>
       <button class="action-button generate-button" id="generate-button">Generate Palette</button>
