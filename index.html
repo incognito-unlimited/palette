@@ -3,22 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Color Palette Maker</title>
+  <title>Advanced Color Palette Maker</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1 class="main-title">Colour Palette</h1>
+  <h1 class="main-title">Advanced Color Palette</h1>
   <div class="container">
-    <div class="rgb-gradient" id="gradient"></div>
-    <div class="preview" id="preview">
-      <span class="preview-text" id="preview-text"></span>
-      <button class="save-button" id="save-button">Show Palette</button>
-      <div class="save-text" id="save-text"></div> </div>
+    <div class="gradient-container">
+      <div class="rgb-gradient" id="gradient"></div>
+      <div class="gradient-legend">X: Hue (0-360°), Y: Lightness (100% top to 0% bottom)</div>
+    </div>
+    <div class="controls-area">
+      <div class="preview" id="preview">
+        <span class="preview-text" id="preview-text-hex"></span>
+        <span class="preview-text" id="preview-text-rgb"></span>
+        <span class="preview-text" id="preview-text-hsl"></span>
+      </div>
+      <div class="hsl-sliders">
+        <div class="slider-group">
+          <label for="hue-slider">H:</label>
+          <input type="range" id="hue-slider" min="0" max="360" value="0">
+          <span id="hue-value">0</span>
+        </div>
+        <div class="slider-group">
+          <label for="saturation-slider">S:</label>
+          <input type="range" id="saturation-slider" min="0" max="100" value="100">
+          <span id="saturation-value">100</span>
+        </div>
+        <div class="slider-group">
+          <label for="lightness-slider">L:</label>
+          <input type="range" id="lightness-slider" min="0" max="100" value="50">
+          <span id="lightness-value">50</span>
+        </div>
+      </div>
+      <div class="palette-controls">
+        <div class="control-group">
+          <label for="harmony-rule">Harmony:</label>
+          <select id="harmony-rule">
+            <option value="complementary">Complementary</option>
+            <option value="analogous">Analogous</option>
+            <option value="triadic">Triadic</option>
+            <option value="monochromatic">Monochromatic</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="palette-size">Size:</label>
+          <input type="number" id="palette-size" min="2" max="10" value="5">
+        </div>
+      </div>
+      <button class="save-button" id="generate-button">Generate Palette</button>
+      <button class="save-button" id="export-button">Export Palette</button>
+    </div>
   </div>
-  <div class="palette" id="palette"></div>
+  <div class="history-area">
+    <h2>History</h2>
+    <div class="history-swatches" id="history-swatches">
+    </div>
+  </div>
+  <div class="palette" id="palette">
+  </div>
   <div class="toast" id="toast">Copied!</div>
-
   <script src="script.js" defer></script>
 </body>
 </html>

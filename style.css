@@ -6,10 +6,10 @@ body {
   margin: 0;
   min-height: 100vh;
   display: flex;
-  flex-direction: column; 
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start; /* Align items from the top */
   align-items: center;
-  padding-top: 20px; 
+  padding: 20px; /* Add padding around the content */
   box-sizing: border-box;
 }
 
@@ -26,15 +26,26 @@ h1.main-title {
     margin-bottom: 30px;
     font-weight: 600;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    width: 100%; /* Ensure title spans available width */
 }
 
 .container {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  gap: 20px;
+  align-items: flex-start; /* Align items to the top */
+  gap: 30px; /* Increased gap */
   flex-wrap: wrap;
   padding: 20px;
+  width: 100%; /* Allow container to take up width */
+  max-width: 900px; /* Max width for larger screens */
+  box-sizing: border-box;
+}
+
+.gradient-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 .rgb-gradient {
@@ -49,6 +60,12 @@ h1.main-title {
       hsl(120, 100%, 50%), hsl(150, 100%, 50%), hsl(180, 100%, 50%), hsl(210, 100%, 50%),
       hsl(240, 100%, 50%), hsl(270, 100%, 50%), hsl(300, 100%, 50%), hsl(330, 100%, 50%),
       hsl(360, 100%, 50%));
+  outline: 2px solid transparent; /* Add outline for focus state */
+  transition: outline-color 0.2s ease;
+}
+
+.rgb-gradient:focus {
+    outline-color: #2563eb; /* Blue outline on focus */
 }
 
 .rgb-gradient::after {
@@ -58,60 +75,266 @@ h1.main-title {
   background: linear-gradient(to bottom, white 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0) 50%, black 100%);
 }
 
+.gradient-legend {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.controls-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 300px; /* Match gradient width for alignment */
+}
+
 .preview {
-  width: 300px;
-  height: 300px;
+  width: 100%; /* Take full width of controls-area */
+  height: 200px; /* Reduced height */
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: #e5e7eb;
-  transition: background 0.1s, box-shadow 0.3s, outline 0.3s; 
-  padding: 20px;
+  transition: background 0.1s, box-shadow 0.3s, outline 0.3s;
+  padding: 15px; /* Adjusted padding */
   box-sizing: border-box;
-  outline: 3px solid transparent; 
+  outline: 3px solid transparent;
+  cursor: default; /* Not clickable itself */
 }
 
-.preview.locked { 
+.preview.locked {
     outline: 3px solid #1D4ED8; /* Tailwind's blue-700 */
     box-shadow: 0 0 12px rgba(29, 78, 216, 0.6); /* Glow effect */
 }
 
 .preview-text {
-  margin-top: 10px;
-  font-size: 16px;
-  color: #1f2937;
-  font-weight: 600;
-  background-color: rgba(255,255,255,0.75); 
-  padding: 5px 10px;
-  border-radius: 4px;
-  text-align: center;
+    margin: 2px 0; /* Smaller margin between lines */
+    font-size: 14px; /* Slightly smaller font */
+    color: #1f2937;
+    font-weight: 600;
+    background-color: rgba(255,255,255,0.75);
+    padding: 3px 8px; /* Adjusted padding */
+    border-radius: 4px;
+    text-align: center;
+    max-width: 100%; /* Prevent text overflow */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
+/* HSL Sliders Styling */
+.hsl-sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding: 0 10px; /* Add padding to align with other controls */
+    box-sizing: border-box;
+}
+
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.slider-group label {
+    font-size: 1em;
+    color: white;
+    font-weight: 600;
+    width: 15px; /* Fixed width for labels */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.slider-group input[type="range"] {
+    flex-grow: 1; /* Take available space */
+}
+
+.slider-group span {
+    font-size: 0.9em;
+    color: white;
+    text-align: right;
+    width: 30px; /* Fixed width for value display */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Basic Range Input Styling (can be enhanced) */
+input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    outline: none;
+    transition: opacity .2s;
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+input[type="range"]:hover {
+    opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Palette Controls */
+.palette-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    padding: 0 10px; /* Add padding */
+    box-sizing: border-box;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-group label {
+    font-size: 1em;
+    color: white;
+    font-weight: 600;
+    width: 70px; /* Fixed width for labels */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.control-group select,
+.control-group input[type="number"] {
+    flex-grow: 1;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9em;
+    background-color: rgba(255, 255, 255, 0.9);
+    outline: 2px solid transparent;
+    transition: outline-color 0.2s ease;
+}
+
+.control-group select:focus,
+.control-group input[type="number"]:focus,
+.save-button:focus,
+.history-swatch:focus { /* Added focus styles */
+    outline-color: #2563eb;
+}
+
+/* Buttons */
+.save-button {
+    width: calc(100% - 20px); /* Take full width minus padding */
+    margin: 0 10px; /* Center with padding */
+    padding: 12px 24px;
+    border: none;
+    background: #3b82f6;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    font-size: 1em;
+    font-weight: 600;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+    outline: none; /* Removed default outline */
+}
+
+.save-button:hover { background: #2563eb; }
+.save-button:active { transform: scale(0.98); }
+
+/* History Area */
+.history-area {
+    margin-top: 30px;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    padding: 0 20px; /* Match container padding */
+    text-align: center;
+}
+
+.history-area h2 {
+    color: white;
+    font-size: 1.8em;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.history-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.history-swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    border: 2px solid rgba(255, 255, 255, 0.5); /* Add border */
+    outline: 2px solid transparent; /* Add outline for focus */
+    outline-offset: 2px; /* Space between border and outline */
+    box-sizing: border-box; /* Include border and outline in element's total width and height */
+}
+
+.history-swatch:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.history-swatch:focus {
+    outline-color: #2563eb;
+}
+
+/* Fullscreen Palette Overlay */
 .palette {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  display: none;
+  display: none; /* Start hidden */
   flex-direction: column;
-  background-color: rgba(0,0,0,0.65);
+  background-color: rgba(0,0,0,0.85); /* Darker overlay */
   z-index: 1000;
   box-sizing: border-box;
+  overflow-y: auto; /* Add scroll for many colors */
 }
 
 .palette-bar {
-  flex: 1;
+  flex: 1; /* Each bar takes equal vertical space */
+  min-height: 50px; /* Minimum height for a bar */
   display: flex;
+  flex-direction: column; /* Stack text elements vertically */
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 1em; /* Adjusted font size */
   cursor: pointer;
   position: relative;
-  transition: opacity 0.5s, background-color 0.3s, filter 0.2s;
-  opacity: 0;
+  transition: opacity 0.5s ease-in-out, background-color 0.3s ease, filter 0.2s ease;
+  opacity: 0; /* Start invisible for animation */
   font-weight: 600;
   color: white; /* Will be overridden by JS based on luminance */
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  padding: 10px; /* Added padding */
+  box-sizing: border-box;
 }
 
 .palette-bar:hover {
@@ -122,20 +345,75 @@ h1.main-title {
   opacity: 1;
 }
 
-.palette-escape-instruction {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #f0f0f0; 
-    font-size: 14px; 
-    padding: 8px 16px;
-    background-color: rgba(0, 0, 0, 0.4); 
-    border-radius: 6px;
-    text-align: center;
-    z-index: 1; /* Ensures it's contextually above palette bars if stacking issues arose */
+/* Individual text lines within palette bar */
+.palette-bar span {
+    display: block; /* Make each color format a new line */
+    font-size: 0.8em; /* Smaller font for formats */
+    margin: 2px 0;
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent background for readability */
+    padding: 2px 5px;
+    border-radius: 3px;
 }
 
+/* Copy Feedback Animation */
+@keyframes copiedHighlight {
+  0% { box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.7); }
+  50% { box-shadow: inset 0 0 20px 5px rgba(255, 255, 255, 0.7); }
+  100% { box-shadow: inset 0 0 0 0 rgba(255, 255, 255, 0.7); }
+}
+
+.palette-bar.copied {
+    animation: copiedHighlight 1s ease-out;
+}
+
+/* Remove Button on Palette Bar */
+.remove-color {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+    cursor: pointer;
+    opacity: 0; /* Hide by default */
+    transition: background 0.2s ease, opacity 0.2s ease;
+    line-height: 1; /* Prevent extra space */
+    padding: 0;
+}
+
+.palette-bar:hover .remove-color {
+    opacity: 1; /* Show on hover */
+}
+
+.remove-color:hover {
+    background: rgba(255, 0, 0, 0.9);
+}
+
+/* Escape Instruction on Palette Overlay */
+.palette-escape-instruction {
+    position: sticky; /* Keep it visible when scrolling */
+    top: 0; /* Stick to the top */
+    left: 50%;
+    transform: translateX(-50%);
+    color: #f0f0f0;
+    font-size: 1em; /* Slightly larger font */
+    padding: 10px 20px; /* More padding */
+    background-color: rgba(0, 0, 0, 0.6); /* Darker background */
+    border-radius: 0 0 8px 8px; /* Rounded bottom corners */
+    text-align: center;
+    z-index: 1002; /* Above palette bars */
+    width: fit-content; /* Fit to content */
+    margin-bottom: 10px; /* Space below instruction */
+}
+
+/* Toast Notification */
 .toast {
   position: fixed;
   bottom: 20px; left: 50%;
@@ -145,48 +423,69 @@ h1.main-title {
   padding: 10px 20px;
   border-radius: 8px;
   opacity: 0;
-  transition: opacity 0.3s;
-  z-index: 1001; /* Above palette and its instruction text */
+  transition: opacity 0.3s ease;
+  z-index: 1001;
+  pointer-events: none; /* Don't block clicks */
 }
 
 .toast.show { opacity: 1; }
 
-.save-button {
-  margin-top: 20px;
-  padding: 12px 24px;
-  border: none;
-  background: #3b82f6;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 16px;
-}
-
-.save-button:hover { background: #2563eb; }
-
-.save-text { display: none; } /* Not used for URL display anymore */
-
-@media (max-width: 700px) {
-    h1.main-title { 
-        font-size: 2em; 
-        margin-bottom: 20px; 
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) { /* Adjusted breakpoint */
+    h1.main-title {
+        font-size: 2em;
+        margin-bottom: 20px;
     }
-    .container { 
-        flex-direction: column; 
-        align-items: center; 
-        padding: 10px; 
+    .container {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        padding: 10px;
     }
-    .rgb-gradient, .preview { 
-        width: 280px; 
-        height: 280px; 
+    .rgb-gradient, .controls-area {
+        width: 100%; /* Take full width */
+        max-width: 300px; /* Still limit max width */
     }
-    .palette-bar { 
-        font-size: 16px; 
+    .gradient-legend {
+        font-size: 0.8em;
     }
-    .palette-escape-instruction { 
-        font-size: 13px; 
-        padding: 6px 12px; 
-        bottom: 15px; 
+    .preview {
+        height: 150px; /* Further reduce preview height */
+        padding: 10px;
+    }
+    .preview-text {
+        font-size: 12px; /* Smaller text in preview */
+    }
+    .hsl-sliders, .palette-controls {
+        padding: 0; /* Remove internal padding */
+    }
+    .slider-group label, .control-group label {
+        width: auto; /* Auto width for smaller screens */
+        margin-right: 5px;
+    }
+    .save-button {
+        width: 100%; /* Full width button */
+        margin: 0;
+    }
+    .history-area {
+        padding: 0 10px;
+    }
+    .history-area h2 {
+        font-size: 1.5em;
+    }
+    .history-swatch {
+        width: 30px;
+        height: 30px;
+    }
+    .palette-bar {
+        font-size: 0.9em;
+        padding: 8px;
+    }
+    .palette-bar span {
+        font-size: 0.7em;
+    }
+    .palette-escape-instruction {
+        font-size: 0.9em;
+        padding: 8px 16px;
     }
 }
