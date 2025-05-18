@@ -38,11 +38,11 @@ function getRelativeLuminance(r, g, b) {
 }
 
 // Helper function: Determine text color (dark or light) based on background luminance
-// KEPT for palette bar text color
+// Used for palette bar text and now for remove button color
 function getTextColor(bgColor) {
     const { r, g, b } = hexToRgb(bgColor);
     const luminance = getRelativeLuminance(r, g, b);
-    // Use a luminance threshold to switch between dark and light text
+    // Use a luminance threshold to switch between dark and light text/icon
     return luminance > 0.2 ? '#1f2937' : '#f0f0f0'; // Use specific dark/light colors
 }
 
@@ -323,7 +323,6 @@ function lockPreview() {
 // Function to reset the color selection state (unlock preview)
 function resetColorSelection() {
     previewEl.classList.remove('locked');
-    // Keep the last selected color and its state (currentHex, currentHSL, sliders)
 }
 
 // Function to save state to Local Storage
@@ -388,6 +387,8 @@ function displayPalette(colors, animate = true) {
         console.log('No colors to display.');
         paletteEl.style.display = 'none';
         currentPalette = [];
+        // Hide instruction when palette is hidden
+        paletteEscapeInstructionEl.style.display = 'none';
         saveState();
         return;
     }
@@ -396,6 +397,9 @@ function displayPalette(colors, animate = true) {
     paletteEl.innerHTML = ''; // Clear previous content
     // Re-append the instruction div as innerHTML clears everything
     paletteEl.appendChild(paletteEscapeInstructionEl);
+    // Show instruction when palette is displayed
+    paletteEscapeInstructionEl.style.display = 'block';
+
     // Create and append the color bars
     currentPalette.forEach((color, i) => { // Use currentPalette state array
         const { r, g, b } = hexToRgb(color);
@@ -435,6 +439,8 @@ function displayPalette(colors, animate = true) {
         removeButton.textContent = 'X';
         removeButton.title = `Remove ${color.toUpperCase()}`;
         removeButton.setAttribute('aria-label', `Remove color ${color.toUpperCase()} from palette`);
+        // Set remove button color based on background luminance
+        removeButton.style.color = getTextColor(color); // Set color dynamically
         removeButton.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent click event from bubbling to the bar
             removeColorFromPalette(color);
@@ -497,6 +503,8 @@ function removeColorFromPalette(hexColor) {
     // If the palette is empty, hide it
     if (currentPalette.length === 0) {
         paletteEl.style.display = 'none';
+         // Hide instruction when palette is hidden
+        paletteEscapeInstructionEl.style.display = 'none';
         resetColorSelection(); // Reset selection state indicators if palette is closed
     }
     saveState(); // Save updated palette
@@ -553,6 +561,7 @@ gradientEl.addEventListener('click', e => {
     selectColor(clickedHex); // Select the color (updates state, preview, sliders)
     addToHistory(clickedHex); // Add to history
     lockPreview(); // Lock preview when a color is clicked
+    // Removed instruction display logic here
 });
 
 // Event Listeners for HSL sliders
@@ -650,7 +659,7 @@ generateButton.addEventListener('click', () => {
 
     const colors = generatePalette(currentHex, selectedRule, paletteSize);
     console.log('Palette generated:', colors);
-    displayPalette(colors);
+    displayPalette(colors); // This function now handles showing the palette and instruction
     addToHistory(currentHex); // Add the base color to history when palette is generated
     lockPreview(); // Keep preview locked when generating a palette
 });
@@ -677,7 +686,15 @@ exportButton.addEventListener('click', () => {
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && paletteEl.style.display === 'flex') {
     paletteEl.style.display = 'none';
+    // Hide instruction when palette is hidden
+    paletteEscapeInstructionEl.style.display = 'none';
     resetColorSelection(); // Reset color selection state indicators when ESC is pressed
     saveState(); // Save state (this will clear the saved palette in LS if it's hidden)
   }
+});
+
+// Ensure instruction is hidden on initial load
+document.addEventListener('DOMContentLoaded', () => {
+    loadState();
+    paletteEscapeInstructionEl.style.display = 'none';
 });
