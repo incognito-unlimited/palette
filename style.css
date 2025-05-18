@@ -101,8 +101,8 @@ h1.main-title {
 }
 
 .rgb-gradient {
-  width: 300px;
-  height: 300px;
+  width: 300px; /* Fixed width */
+  height: 300px; /* Fixed height */
   position: relative;
   border-radius: 8px;
   cursor: crosshair;
@@ -124,7 +124,7 @@ h1.main-title {
 .rgb-gradient::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%; /* Cover the entire gradient */
   background: linear-gradient(to bottom, white 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0) 50%, black 100%);
 }
 
@@ -247,12 +247,25 @@ input[type="range"]::-moz-range-thumb {
     font-weight: normal;
 }
 
+/* Container for palette controls and history */
+.palette-controls-and-history {
+    display: flex;
+    flex-direction: row; /* Arrange children horizontally */
+    gap: 20px; /* Space between controls and history */
+    width: 100%;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+
 /* Palette Controls */
 .palette-controls {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 100%;
+    /* Adjust width to fit alongside history */
+    flex-basis: 250px; /* Give controls a base width */
+    flex-grow: 1; /* Allow controls to grow */
+    min-width: 200px; /* Prevent controls from getting too small */
 }
 
 .control-group {
@@ -279,7 +292,7 @@ input[type="range"]::-moz-range-thumb {
     overflow: hidden; /* Hide default arrow */
     display: flex; /* Use flex to align select and custom arrow */
     align-items: center;
-    min-width: 150px; /* Ensure minimum width */
+    min-width: 100px; /* Ensure minimum width */
 }
 
 .select-wrapper select {
@@ -315,7 +328,7 @@ input[type="range"]::-moz-range-thumb {
     border-radius: 4px;
     overflow: hidden;
     position: relative; /* Needed for positioning arrows */
-     min-width: 150px; /* Ensure minimum width, match select-wrapper */
+     min-width: 100px; /* Ensure minimum width, match select-wrapper */
 }
 
 
@@ -398,60 +411,41 @@ input[type=number] {
 }
 
 
-/* Buttons */
-.action-button {
-    width: 100%;
-    padding: 12px 24px;
-    border: none;
-    background: rgba(255, 255, 255, 0.95); /* Light background */
-    color: #1f2937; /* Dark text */
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-    font-size: 1em;
-    font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    outline: none;
-}
-
-.action-button:hover {
-    background: #fff; /* Slightly lighter on hover */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-.action-button:active { transform: scale(0.98); }
-.action-button:focus {
-    outline: 2px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-.generate-button { margin-top: 10px; } /* Add space above generate */
-.export-button { margin-top: 0px; } /* Positioned in wrapper */
-
 /* History Area */
 .history-area {
-    margin-top: 20px; /* Space above history */
-    width: 100%;
-    max-width: 740px; /* Align width with combined gradient+controls */
+    display: flex; /* Arrange heading and swatches horizontally */
+    flex-direction: row;
+    align-items: center; /* Vertically center content */
+    gap: 10px; /* Space between heading and swatches */
+    flex-grow: 1; /* Allow history area to grow */
+    flex-basis: 250px; /* Give history a base width */
+    min-width: 200px; /* Prevent history from getting too small */
     box-sizing: border-box;
-    text-align: center;
-    flex-basis: 100%; /* Take full row */
     z-index: 1; /* Ensure history is above pattern */
     position: relative;
+    margin-top: 0; /* Remove top margin as it's part of flex row */
 }
 
 .history-area h2 {
     color: white;
-    font-size: 1.5em; /* Smaller history title */
-    margin-bottom: 10px; /* Reduced margin */
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    font-size: 0.9em; /* Match label font size */
+    margin: 0; /* Remove default margin */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     font-weight: normal;
+    opacity: 0.9;
+    width: 60px; /* Match label width */
+    text-align: left;
+    flex-shrink: 0; /* Prevent heading from shrinking */
 }
 
 .history-swatches {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start; /* Align swatches to the left */
     gap: 8px; /* Reduced gap */
+    flex-grow: 1; /* Allow swatches container to grow */
+     /* Constrain width to the available space next to the heading */
+    max-width: calc(100% - 70px); /* Subtract label width + gap */
 }
 
 .history-swatch {
@@ -476,13 +470,45 @@ input[type=number] {
     outline-color: rgba(255, 255, 255, 0.8);
 }
 
-.export-button {
-    margin-top: 20px; /* Space above export button */
-    flex-basis: 100%; /* Take full row */
-    max-width: 740px; /* Match history width */
-    z-index: 1; /* Ensure button is above pattern */
-    position: relative;
+/* Container for action buttons */
+.action-buttons {
+    display: flex;
+    gap: 20px; /* Space between buttons */
+    width: 100%;
+    margin-top: 10px; /* Space above buttons */
+    flex-wrap: wrap; /* Allow buttons to wrap */
 }
+
+/* Buttons */
+.action-button {
+    flex-grow: 1; /* Allow buttons to grow and take equal space */
+    flex-basis: 0; /* Start with a base of 0 and grow */
+    padding: 12px 24px;
+    border: none;
+    background: rgba(255, 255, 255, 0.95); /* Light background */
+    color: #1f2937; /* Dark text */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    font-size: 1em;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    outline: none;
+    text-align: center; /* Center button text */
+}
+
+.action-button:hover {
+    background: #fff; /* Slightly lighter on hover */
+    box-shadow: 0 44px 12px rgba(0,0,0,0.2);
+}
+.action-button:active { transform: scale(0.98); }
+.action-button:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.generate-button { margin-top: 0; } /* Remove top margin as it's in flex container */
+.export-button { margin-top: 0; } /* Remove top margin as it's in flex container */
 
 /* Fullscreen Palette Overlay */
 .palette {
@@ -633,11 +659,13 @@ input[type=number] {
     .main-content-wrapper {
         gap: 20px;
         padding: 0 10px;
+        flex-direction: column; /* Stack columns on smaller screens */
+        align-items: center;
     }
-    .gradient-container, .controls-area {
-        width: 100%; /* Stack columns */
+     .gradient-container {
+        width: 100%; /* Take full width */
         max-width: 320px; /* Limit max width */
-    }
+     }
     .rgb-gradient {
         width: 100%;
         height: auto; /* Allow height to scale with width */
@@ -649,18 +677,36 @@ input[type=number] {
         top: 0; left: 0; right: 0; bottom: 0;
     }
     .gradient-legend { font-size: 0.8em; }
+    .controls-area {
+        width: 100%; /* Take full width */
+        max-width: 320px; /* Limit max width */
+    }
     .preview { height: 120px; } /* Further reduce preview height */
     .preview-text { font-size: 0.8em; }
-    .hsl-sliders, .palette-controls { gap: 6px; } /* Smaller gaps */
-    .slider-group label, .control-group label { width: auto; }
+    .hsl-sliders { gap: 6px; } /* Smaller gaps */
+    .slider-group label { width: auto; }
     .slider-group span.slider-value { width: 25px; }
+
+    .palette-controls-and-history {
+         flex-direction: column; /* Stack controls and history */
+         gap: 15px; /* Space between stacked sections */
+     }
+     .palette-controls, .history-area {
+         flex-basis: auto; /* Remove base width */
+         min-width: auto; /* Remove min width */
+         width: 100%; /* Take full width of controls-area */
+     }
+     .history-area {
+         flex-direction: column; /* Stack heading and swatches */
+         align-items: flex-start; /* Align heading and swatches to the left */
+         gap: 8px; /* Space between heading and swatches */
+     }
+     .history-area h2 { width: auto; } /* Allow heading width to be auto */
+     .history-swatches { max-width: 100%; justify-content: center;} /* Allow swatches to use full width */
+
+     .action-buttons { gap: 10px; } /* Smaller gap for buttons */
     .action-button { padding: 10px 20px; font-size: 0.9em; }
-    .history-area, .export-button {
-        max-width: 100%; /* Take full width on small screens */
-        padding: 0;
-        margin-top: 15px;
-    }
-    .history-area h2 { font-size: 1.3em; }
+
     .history-swatch { width: 30px; height: 30px; }
     .palette-bar { min-height: 50px; }
     .palette-bar span { font-size: 0.75em; }
@@ -681,6 +727,7 @@ input[type=number] {
     .slider-group label, .control-group label { font-size: 0.85em; }
     .slider-value { font-size: 0.8em; width: 20px; }
     .action-button { font-size: 0.85em; padding: 8px 15px; }
+    .history-area, .export-button { max-width: 280px; }
     .history-area h2 { font-size: 1.2em; }
     .history-swatch { width: 25px; height: 25px; }
     .palette-bar span { font-size: 0.7em; padding: 1px 4px;}

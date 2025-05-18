@@ -36,36 +36,40 @@
           <span class="slider-value" id="lightness-value">50</span>
         </div>
       </div>
-      <div class="palette-controls">
-        <div class="control-group">
-          <label for="harmony-rule">Harmony</label>
-          <div class="select-wrapper">
-            <select id="harmony-rule">
-              <option value="complementary">Complementary</option>
-              <option value="analogous">Analogous</option>
-              <option value="triadic">Triadic</option>
-              <option value="monochromatic">Monochromatic</option>
-            </select>
-          </div>
-        </div>
-        <div class="control-group">
-          <label for="palette-size">Size</label>
-          <div class="palette-size-input-wrapper">
-            <input type="number" id="palette-size" min="2" max="10" value="5" aria-label="Palette size">
-            <div class="number-input-arrows">
-                <button class="arrow up" aria-label="Increase palette size"></button>
-                <button class="arrow down" aria-label="Decrease palette size"></button>
+      <div class="palette-controls-and-history">
+          <div class="palette-controls">
+            <div class="control-group">
+              <label for="harmony-rule">Harmony</label>
+              <div class="select-wrapper">
+                <select id="harmony-rule">
+                  <option value="complementary">Complementary</option>
+                  <option value="analogous">Analogous</option>
+                  <option value="triadic">Triadic</option>
+                  <option value="monochromatic">Monochromatic</option>
+                </select>
+              </div>
+            </div>
+            <div class="control-group">
+              <label for="palette-size">Size</label>
+              <div class="palette-size-input-wrapper">
+                <input type="number" id="palette-size" min="2" max="10" value="5" aria-label="Palette size">
+                <div class="number-input-arrows">
+                    <button class="arrow up" aria-label="Increase palette size"></button>
+                    <button class="arrow down" aria-label="Decrease palette size"></button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+           <div class="history-area">
+              <h2>History</h2>
+              <div class="history-swatches" id="history-swatches"></div>
+          </div>
       </div>
-      <button class="action-button generate-button" id="generate-button">Generate Palette</button>
+      <div class="action-buttons">
+        <button class="action-button export-button" id="export-button">Export Palette</button>
+        <button class="action-button generate-button" id="generate-button">Generate Palette</button>
+      </div>
     </div>
-    <div class="history-area">
-      <h2>History</h2>
-      <div class="history-swatches" id="history-swatches"></div>
-    </div>
-    <button class="action-button export-button" id="export-button">Export Palette</button>
   </div>
   <div class="palette" id="palette">
     <div class="palette-escape-instruction" id="palette-escape-instruction">Press ESC to choose another color</div>
