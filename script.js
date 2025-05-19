@@ -229,7 +229,7 @@ const sizeArrowDown = document.querySelector('.number-input-arrows .arrow.down')
 const DEFAULT_COLOR = '#3b82f6'; // A nice starting blue
 let currentHex = DEFAULT_COLOR; // The currently SELECTED color (via click, slider, history, load)
 let currentHSL = hexToHsl(DEFAULT_COLOR);
-const HISTORY_MAX_SIZE = 10;
+const HISTORY_MAX_SIZE = 7;
 let colorHistory = [];
 let currentPalette = []; // Store the currently displayed palette
 

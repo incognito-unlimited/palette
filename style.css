@@ -9,12 +9,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 0px;
   box-sizing: border-box;
   color: #1f2937; /* Default text color */
   line-height: 1.5;
-  position: relative; /* Needed for pseudo-element positioning */
-  /* Removed overflow: hidden; */
+  position: relative; /* Needed for pseudo-element positioning and animated shapes */
+  overflow-x: hidden; /* Hide horizontal overflow */
+  overflow-y: auto; /* Allow vertical scrolling */
 }
 
 /* Geometric Pattern Overlay */
@@ -58,6 +59,7 @@ body::before {
     background-size: 11px 11px;
     opacity: 0.8; /* Translucency */
     pointer-events: none; /* Allow clicks to pass through */
+    z-index: -1; /* Ensure pattern is behind geometric shapes */
 }
 
 
@@ -75,6 +77,8 @@ h1.main-title {
     font-weight: normal; /* Minimalist font weight */
     text-shadow: 1px 1px 3px rgba(0,0,0,0.2); /* Subtle shadow */
     padding: 0 10px; /* Prevent hitting edges on small screens */
+    z-index: 2; /* Ensure title is above other elements */
+    position: relative; /* Needed for z-index to work */
 }
 
 /* Main layout container for gradient, controls, history, export */
@@ -87,7 +91,7 @@ h1.main-title {
     max-width: 960px; /* Increased max width */
     padding: 0 20px; /* Padding on sides */
     box-sizing: border-box;
-    z-index: 1; /* Ensure content is above pattern */
+    z-index: 1; /* Ensure content is above background elements */
     position: relative; /* Needed for z-index to work */
      margin: auto; /* Added to vertically center the content */
 }
@@ -266,7 +270,7 @@ input[type="range"]::-moz-range-thumb {
     flex-direction: row; /* Arrange children horizontally */
     gap: 20px; /* Space between controls and history */
     width: 100%;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap; /* Allow buttons to wrap */
 }
 
 
@@ -434,7 +438,7 @@ input[type=number] {
     flex-basis: 250px; /* Give history a base width */
     min-width: 200px; /* Prevent history from getting too small */
     box-sizing: border-box;
-    z-index: 1; /* Ensure history is above pattern */
+    z-index: 1; /* Ensure history is above pattern and geometric shapes */
     position: relative;
     margin-top: 0; /* Remove top margin as it's in flex row */
 }
@@ -455,7 +459,7 @@ input[type=number] {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start; /* Align swatches to the left */
-    gap: 8px; /* Reduced gap */
+    gap: 7px; /* Reduced gap */
     flex-grow: 1; /* Allow swatches container to grow */
      /* Constrain width to the available space next to the heading */
     max-width: calc(100% - 70px); /* Subtract label width + gap */
@@ -646,6 +650,486 @@ input[type=number] {
     display: none; /* Hidden by default on desktop */
 }
 
+/* Animated Geometric Shapes Background */
+.geometric-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Hide shapes outside the container */
+    z-index: -2; /* Place behind the main content but above body background */
+    pointer-events: none; /* Allow interaction with content behind */
+    perspective: 1000px; /* Add perspective for 3D effect */
+}
+
+.geometric-background .shape {
+    position: absolute;
+    width: 0;
+    height: 0;
+    /* Using border to create a triangle pointing up */
+    border-left: 60px solid transparent; /* Base size */
+    border-right: 60px solid transparent; /* Base size */
+    border-bottom: 100px solid rgba(255, 255, 255, 0.1); /* Base triangle color and size */
+    transform-style: preserve-3d; /* Enable 3D transforms */
+    opacity: 0.6; /* Base opacity */
+    /* Removed drop-shadow for a simpler look */
+}
+
+/* Individual shape positioning, size variations, opacity, and animation delays/types */
+/* Increased quantity and more varied initial positions and animation properties */
+.geometric-background .shape1 {
+    top: 5%; left: 10%;
+    animation: floatRotate1 25s infinite ease-in-out alternate;
+    transform: translateZ(-100px) rotateX(20deg) rotateY(40deg);
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+.geometric-background .shape2 {
+    top: 85%; left: 80%;
+    animation: floatRotate2 30s infinite ease-in-out alternate-reverse;
+    transform: translateZ(-50px) rotateX(-30deg) rotateY(-60deg);
+    border-bottom-width: 120px; border-left-width: 72px; border-right-width: 72px;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    opacity: 0.5;
+}
+
+.geometric-background .shape3 {
+    top: 30%; left: 95%;
+    animation: floatRotate3 22s infinite linear;
+    transform: translateZ(50px) rotateX(40deg) rotateY(-20deg);
+    border-bottom-width: 90px; border-left-width: 54px; border-right-width: 54px;
+    border-bottom-color: rgba(255, 255, 255, 0.18);
+    opacity: 0.7;
+}
+
+.geometric-background .shape4 {
+    top: 70%; left: 5%;
+    animation: floatRotate4 28s infinite ease alternate;
+    transform: translateZ(150px) rotateX(-50deg) rotateY(70deg);
+    border-bottom-width: 110px; border-left-width: 66px; border-right-width: 66px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.6;
+}
+
+.geometric-background .shape5 {
+    top: 15%; left: 50%;
+     animation: floatRotate5 35s infinite ease-in-out;
+     transform: translateZ(-120px) rotateX(60deg) rotateY(-80deg);
+     border-bottom-width: 140px; border-left-width: 84px; border-right-width: 84px;
+     border-bottom-color: rgba(255, 255, 255, 0.14);
+     opacity: 0.55;
+}
+
+.geometric-background .shape6 {
+    top: 50%; left: 25%;
+    animation: floatRotate6 26s infinite linear reverse;
+    transform: translateZ(80px) rotateX(10deg) rotateY(100deg);
+     border-bottom-width: 105px; border-left-width: 63px; border-right-width: 63px;
+     border-bottom-color: rgba(255, 255, 255, 0.08);
+     opacity: 0.75;
+}
+
+.geometric-background .shape7 {
+    top: 25%; left: 75%;
+    animation: floatRotate7 32s infinite ease alternate-reverse;
+    transform: translateZ(20px) rotateX(-20deg) rotateY(-110deg);
+    border-bottom-width: 115px; border-left-width: 69px; border-right-width: 69px;
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+    opacity: 0.65;
+}
+
+.geometric-background .shape8 {
+    top: 75%; left: 40%;
+    animation: floatRotate8 24s infinite ease-in-out reverse;
+    transform: translateZ(-70px) rotateX(50deg) rotateY(130deg);
+     border-bottom-width: 135px; border-left-width: 81px; border-right-width: 81px;
+    border-bottom-color: rgba(255, 255, 255, 0.11);
+    opacity: 0.58;
+}
+
+.geometric-background .shape9 {
+    top: 45%; left: 5%;
+    animation: floatRotate9 29s infinite linear alternate;
+    transform: translateZ(100px) rotateX(-40deg) rotateY(-150deg);
+    border-bottom-width: 95px; border-left-width: 57px; border-right-width: 57px;
+     border-bottom-color: rgba(255, 255, 255, 0.09);
+     opacity: 0.72;
+}
+
+.geometric-background .shape10 {
+    top: 10%; left: 90%;
+    animation: floatRotate10 34s infinite ease-in-out alternate-reverse;
+    transform: translateZ(-30px) rotateX(30deg) rotateY(160deg);
+    border-bottom-width: 125px; border-left-width: 75px; border-right-width: 75px;
+    border-bottom-color: rgba(255, 255, 255, 0.17);
+    opacity: 0.62;
+}
+
+.geometric-background .shape11 {
+    top: 80%; left: 20%;
+    animation: floatRotate11 27s infinite linear reverse;
+    transform: translateZ(110px) rotateX(-10deg) rotateY(-170deg);
+    border-bottom-width: 100px; border-left-width: 60px; border-right-width: 60px;
+     border-bottom-color: rgba(255, 255, 255, 0.13);
+     opacity: 0.68;
+}
+
+.geometric-background .shape12 {
+    top: 35%; left: 60%;
+    animation: floatRotate12 31s infinite ease alternate;
+    transform: translateZ(-80px) rotateX(70deg) rotateY(190deg);
+    border-bottom-width: 145px; border-left-width: 87px; border-right-width: 87px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.7;
+}
+
+/* Added styles for shapes 13-30 with varied positions, sizes, opacity, and animation properties */
+.geometric-background .shape13 {
+    top: 60%; left: 90%;
+    animation: floatRotate13 23s infinite ease-in-out alternate;
+    transform: translateZ(40px) rotateX(50deg) rotateY(-50deg);
+    border-bottom-width: 110px; border-left-width: 66px; border-right-width: 66px;
+    border-bottom-color: rgba(255, 255, 255, 0.19);
+    opacity: 0.5;
+}
+
+.geometric-background .shape14 {
+    top: 20%; left: 5%;
+    animation: floatRotate14 29s infinite linear reverse;
+    transform: translateZ(-60px) rotateX(-20deg) rotateY(20deg);
+    border-bottom-width: 95px; border-left-width: 57px; border-right-width: 57px;
+    border-bottom-color: rgba(255, 255, 255, 0.11);
+    opacity: 0.6;
+}
+
+.geometric-background .shape15 {
+    top: 90%; left: 30%;
+    animation: floatRotate15 34s infinite ease alternate;
+    transform: translateZ(130px) rotateX(80deg) rotateY(150deg);
+    border-bottom-width: 150px; border-left-width: 90px; border-right-width: 90px;
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+    opacity: 0.75;
+}
+
+.geometric-background .shape16 {
+    top: 10%; left: 70%;
+    animation: floatRotate16 26s infinite ease-in-out alternate-reverse;
+    transform: translateZ(-90px) rotateX(-40deg) rotateY(-100deg);
+    border-bottom-width: 100px; border-left-width: 60px; border-right-width: 60px;
+    border-bottom-color: rgba(255, 255, 255, 0.13);
+    opacity: 0.6;
+}
+
+.geometric-background .shape17 {
+    top: 80%; left: 15%;
+    animation: floatRotate17 31s infinite linear;
+    transform: translateZ(70px) rotateX(10deg) rotateY(180deg);
+    border-bottom-width: 120px; border-left-width: 72px; border-right-width: 72px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.55;
+}
+
+.geometric-background .shape18 {
+    top: 40%; left: 35%;
+    animation: floatRotate18 20s infinite ease reverse;
+    transform: translateZ(-110px) rotateX(60deg) rotateY(-140deg);
+    border-bottom-width: 130px; border-left-width: 78px; border-right-width: 78px;
+    border-bottom-color: rgba(255, 255, 255, 0.18);
+    opacity: 0.7;
+}
+
+.geometric-background .shape19 {
+    top: 65%; left: 55%;
+    animation: floatRotate19 27s infinite ease-in-out alternate;
+    transform: translateZ(90px) rotateX(-30deg) rotateY(90deg);
+    border-bottom-width: 105px; border-left-width: 63px; border-right-width: 63px;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    opacity: 0.65;
+}
+
+.geometric-background .shape20 {
+    top: 30%; left: 80%;
+    animation: floatRotate20 33s infinite linear alternate-reverse;
+    transform: translateZ(-40px) rotateX(40deg) rotateY(200deg);
+    border-bottom-width: 115px; border-left-width: 69px; border-right-width: 69px;
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+    opacity: 0.58;
+}
+
+.geometric-background .shape21 {
+    top: 15%; left: 30%;
+    animation: floatRotate21 24s infinite ease reverse;
+    transform: translateZ(120px) rotateX(-10deg) rotateY(-210deg);
+    border-bottom-width: 140px; border-left-width: 84px; border-right-width: 84px;
+    border-bottom-color: rgba(255, 255, 255, 0.09);
+    opacity: 0.72;
+}
+
+.geometric-background .shape22 {
+    top: 85%; left: 50%;
+    animation: floatRotate22 30s infinite ease-in-out;
+    transform: translateZ(-150px) rotateX(70deg) rotateY(230deg);
+    border-bottom-width: 100px; border-left-width: 60px; border-right-width: 60px;
+    border-bottom-color: rgba(255, 255, 255, 0.17);
+    opacity: 0.62;
+}
+
+.geometric-background .shape23 {
+    top: 50%; left: 75%;
+    animation: floatRotate23 25s infinite linear alternate;
+    transform: translateZ(60px) rotateX(-50deg) rotateY(-250deg);
+    border-bottom-width: 130px; border-left-width: 78px; border-right-width: 78px;
+    border-bottom-color: rgba(255, 255, 255, 0.11);
+    opacity: 0.68;
+}
+
+.geometric-background .shape24 {
+    top: 25%; left: 20%;
+    animation: floatRotate24 32s infinite ease alternate-reverse;
+    transform: translateZ(-80px) rotateX(30deg) rotateY(270deg);
+    border-bottom-width: 110px; border-left-width: 66px; border-right-width: 66px;
+    border-bottom-color: rgba(255, 255, 255, 0.19);
+    opacity: 0.5;
+}
+
+.geometric-background .shape25 {
+    top: 70%; left: 95%;
+    animation: floatRotate25 28s infinite ease-in-out reverse;
+    transform: translateZ(100px) rotateX(-20deg) rotateY(-290deg);
+    border-bottom-width: 95px; border-left-width: 57px; border-right-width: 57px;
+    border-bottom-color: rgba(255, 255, 255, 0.13);
+    opacity: 0.75;
+}
+
+.geometric-background .shape26 {
+    top: 5%; left: 40%;
+    animation: floatRotate26 21s infinite linear;
+    transform: translateZ(-120px) rotateX(80deg) rotateY(310deg);
+    border-bottom-width: 140px; border-left-width: 84px; border-right-width: 84px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    opacity: 0.6;
+}
+
+.geometric-background .shape27 {
+    top: 90%; left: 70%;
+    animation: floatRotate27 35s infinite ease alternate;
+    transform: translateZ(50px) rotateX(-60deg) rotateY(-330deg);
+    border-bottom-width: 150px; border-left-width: 90px; border-right-width: 90px;
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+    opacity: 0.55;
+}
+
+.geometric-background .shape28 {
+    top: 20%; left: 60%;
+    animation: floatRotate28 26s infinite ease-in-out alternate-reverse;
+    transform: translateZ(-70px) rotateX(40deg) rotateY(350deg);
+    border-bottom-width: 100px; border-left-width: 60px; border-right-width: 60px;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    opacity: 0.68;
+}
+
+.geometric-background .shape29 {
+    top: 75%; left: 10%;
+    animation: floatRotate29 30s infinite linear reverse;
+    transform: translateZ(110px) rotateX(-10deg) rotateY(-370deg);
+    border-bottom-width: 120px; border-left-width: 72px; border-right-width: 72px;
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+    opacity: 0.7;
+}
+
+.geometric-background .shape30 {
+    top: 40%; left: 45%;
+    animation: floatRotate30 22s infinite ease alternate;
+    transform: translateZ(-90px) rotateX(50deg) rotateY(390deg);
+    border-bottom-width: 135px; border-left-width: 81px; border-right-width: 81px;
+    border-bottom-color: rgba(255, 255, 255, 0.11);
+    opacity: 0.65;
+}
+
+
+/* Keyframe Animations for Floating and Rotating */
+/* More varied and slightly simpler animation paths */
+
+@keyframes floatRotate1 {
+    0% { transform: translate3d(0, 0, -100px) rotateX(20deg) rotateY(40deg); }
+    50% { transform: translate3d(80px, -40px, 100px) rotateX(110deg) rotateY(130deg); }
+    100% { transform: translate3d(0, 0, -100px) rotateX(200deg) rotateY(220deg); }
+}
+
+@keyframes floatRotate2 {
+    0% { transform: translate3d(0, 0, -50px) rotateX(-30deg) rotateY(-60deg); }
+    50% { transform: translate3d(-100px, 50px, 80px) rotateX(-130deg) rotateY(-160deg); }
+    100% { transform: translate3d(0, 0, -50px) rotateX(-230deg) rotateY(-260deg); }
+}
+
+@keyframes floatRotate3 {
+    0% { transform: translate3d(0, 0, 50px) rotateX(40deg) rotateY(-20deg); }
+    50% { transform: translate3d(-80px, -100px, 150px) rotateX(140deg) rotateY(-120deg); }
+    100% { transform: translate3d(0, 0, 50px) rotateX(240deg) rotateY(-220deg); }
+}
+
+@keyframes floatRotate4 {
+    0% { transform: translate3d(0, 0, 150px) rotateX(-50deg) rotateY(70deg); }
+    50% { transform: translate3d(60px, 120px, 50px) rotateX(-150deg) rotateY(170deg); }
+    100% { transform: translate3d(0, 0, 150px) rotateX(-250deg) rotateY(270deg); }
+}
+
+@keyframes floatRotate5 {
+    0% { transform: translate3d(0, 0, -120px) rotateX(60deg) rotateY(-80deg); }
+    50% { transform: translate3d(0px, 140px, 100px) rotateX(160deg) rotateY(-180deg); }
+    100% { transform: translate3d(0, 0, -120px) rotateX(260deg) rotateY(-280deg); }
+}
+
+@keyframes floatRotate6 {
+    0% { transform: translate3d(0, 0, 80px) rotateX(10deg) rotateY(100deg); }
+    50% { transform: translate3d(100px, -80px, -20px) rotateX(110deg) rotateY(200deg); }
+    100% { transform: translate3d(0, 0, 80px) rotateX(210deg) rotateY(300deg); }
+}
+
+@keyframes floatRotate7 {
+    0% { transform: translate3d(0, 0, 20px) rotateX(-20deg) rotateY(-110deg); }
+    50% { transform: translate3d(-120px, -60px, 100px) rotateX(-120deg) rotateY(-210deg); }
+    100% { transform: translate3d(0, 0, 20px) rotateX(-220deg) rotateY(-310deg); }
+}
+
+@keyframes floatRotate8 {
+    0% { transform: translate3d(0, 0, -70px) rotateX(50deg) rotateY(130deg); }
+    50% { transform: translate3d(130px, 70px, 0px) rotateX(150deg) rotateY(230deg); }
+    100% { transform: translate3d(0, 0, -70px) rotateX(250deg) rotateY(330deg); }
+}
+
+@keyframes floatRotate9 {
+    0% { transform: translate3d(0, 0, 100px) rotateX(-40deg) rotateY(-150deg); }
+    50% { transform: translate3d(-90px, 90px, 40px) rotateX(-140deg) rotateY(-250deg); }
+    100% { transform: translate3d(0, 0, 100px) rotateX(-240deg) rotateY(-350deg); }
+}
+
+@keyframes floatRotate10 {
+    0% { transform: translate3d(0, 0, -30px) rotateX(30deg) rotateY(160deg); }
+    50% { transform: translate3d(80px, -80px, 120px) rotateX(130deg) rotateY(260deg); }
+    100% { transform: translate3d(0, 0, -30px) rotateX(230deg) rotateY(360deg); }
+}
+
+@keyframes floatRotate11 {
+    0% { transform: translate3d(0, 0, 110px) rotateX(-10deg) rotateY(-170deg); }
+    50% { transform: translate3d(-100px, -110px, 0px) rotateX(-110deg) rotateY(-270deg); }
+    100% { transform: translate3d(0, 0, 110px) rotateX(-210deg) rotateY(-370deg); }
+}
+
+@keyframes floatRotate12 {
+    0% { transform: translate3d(0, 0, -80px) rotateX(70deg) rotateY(190deg); }
+    50% { transform: translate3d(110px, 80px, -30px) rotateX(170deg) rotateY(290deg); }
+    100% { transform: translate3d(0, 0, -80px) rotateX(270deg) rotateY(390deg); }
+}
+
+@keyframes floatRotate13 {
+    0% { transform: translate3d(0, 0, 40px) rotateX(50deg) rotateY(-50deg); }
+    50% { transform: translate3d(90px, -50px, 130px) rotateX(150deg) rotateY(-150deg); }
+    100% { transform: translate3d(0, 0, 40px) rotateX(250deg) rotateY(-250deg); }
+}
+
+@keyframes floatRotate14 {
+    0% { transform: translate3d(0, 0, -60px) rotateX(-20deg) rotateY(20deg); }
+    50% { transform: translate3d(-110px, 60px, 90px) rotateX(-120deg) rotateY(120deg); }
+    100% { transform: translate3d(0, 0, -60px) rotateX(-220deg) rotateY(220deg); }
+}
+
+@keyframes floatRotate15 {
+    0% { transform: translate3d(0, 0, 130px) rotateX(80deg) rotateY(150deg); }
+    50% { transform: translate3d(70px, 130px, 60px) rotateX(180deg) rotateY(250deg); }
+    100% { transform: translate3d(0, 0, 130px) rotateX(280deg) rotateY(350deg); }
+}
+
+@keyframes floatRotate16 {
+    0% { transform: translate3d(0, 0, -90px) rotateX(-40deg) rotateY(-100deg); }
+    50% { transform: translate3d(-100px, -90px, 20px) rotateX(-140deg) rotateY(-200deg); }
+    100% { transform: translate3d(0, 0, -90px) rotateX(-240deg) rotateY(-300deg); }
+}
+
+@keyframes floatRotate17 {
+    0% { transform: translate3d(0, 0, 70px) rotateX(10deg) rotateY(180deg); }
+    50% { transform: translate3d(120px, 70px, -10px) rotateX(110deg) rotateY(280deg); }
+    100% { transform: translate3d(0, 0, 70px) rotateX(210deg) rotateY(380deg); }
+}
+
+@keyframes floatRotate18 {
+    0% { transform: translate3d(0, 0, -110px) rotateX(60deg) rotateY(-140deg); }
+    50% { transform: translate3d(0px, -110px, 80px) rotateX(160deg) rotateY(-240deg); }
+    100% { transform: translate3d(0, 0, -110px) rotateX(260deg) rotateY(-340deg); }
+}
+
+@keyframes floatRotate19 {
+    0% { transform: translate3d(0, 0, 90px) rotateX(-30deg) rotateY(90deg); }
+    50% { transform: translate3d(105px, 90px, 0px) rotateX(-130deg) rotateY(190deg); }
+    100% { transform: translate3d(0, 0, 90px) rotateX(-230deg) rotateY(290deg); }
+}
+
+@keyframes floatRotate20 {
+    0% { transform: translate3d(0, 0, -40px) rotateX(40deg) rotateY(200deg); }
+    50% { transform: translate3d(115px, -40px, 100px) rotateX(140deg) rotateY(300deg); }
+    100% { transform: translate3d(0, 0, -40px) rotateX(240deg) rotateY(400deg); }
+}
+
+@keyframes floatRotate21 {
+    0% { transform: translate3d(0, 0, 120px) rotateX(-10deg) rotateY(-210deg); }
+    50% { transform: translate3d(-140px, -120px, 10px) rotateX(-110deg) rotateY(-310deg); }
+    100% { transform: translate3d(0, 0, 120px) rotateX(-210deg) rotateY(-410deg); }
+}
+
+@keyframes floatRotate22 {
+    0% { transform: translate3d(0, 0, -150px) rotateX(70deg) rotateY(230deg); }
+    50% { transform: translate3d(100px, 150px, -20px) rotateX(170deg) rotateY(330deg); }
+    100% { transform: translate3d(0, 0, -150px) rotateX(270deg) rotateY(430deg); }
+}
+
+@keyframes floatRotate23 {
+    0% { transform: translate3d(0, 0, 60px) rotateX(-50deg) rotateY(-250deg); }
+    50% { transform: translate3d(130px, -60px, 30px) rotateX(-150deg) rotateY(-350deg); }
+    100% { transform: translate3d(0, 0, 60px) rotateX(-250deg) rotateY(-450deg); }
+}
+
+@keyframes floatRotate24 {
+    0% { transform: translate3d(0, 0, -80px) rotateX(30deg) rotateY(270deg); }
+    50% { transform: translate3d(110px, 80px, -10px) rotateX(130deg) rotateY(370deg); }
+    100% { transform: translate3d(0, 0, -80px) rotateX(230deg) rotateY(470deg); }
+}
+
+@keyframes floatRotate25 {
+    0% { transform: translate3d(0, 0, 100px) rotateX(-20deg) rotateY(-290deg); }
+    50% { transform: translate3d(95px, -100px, 40px) rotateX(-120deg) rotateY(-390deg); }
+    100% { transform: translate3d(0, 0, 100px) rotateX(-220deg) rotateY(-490deg); }
+}
+
+@keyframes floatRotate26 {
+    0% { transform: translate3d(0, 0, -120px) rotateX(80deg) rotateY(310deg); }
+    50% { transform: translate3d(140px, 120px, -50px) rotateX(180deg) rotateY(410deg); }
+    100% { transform: translate3d(0, 0, -120px) rotateX(280deg) rotateY(510deg); }
+}
+
+@keyframes floatRotate27 {
+    0% { transform: translate3d(0, 0, 50px) rotateX(-60deg) rotateY(-330deg); }
+    50% { transform: translate3d(150px, -50px, 20px) rotateX(-160deg) rotateY(-430deg); }
+    100% { transform: translate3d(0, 0, 50px) rotateX(-260deg) rotateY(-530deg); }
+}
+
+@keyframes floatRotate28 {
+    0% { transform: translate3d(0, 0, -70px) rotateX(40deg) rotateY(350deg); }
+    50% { transform: translate3d(100px, 70px, -10px) rotateX(140deg) rotateY(450deg); }
+    100% { transform: translate3d(0, 0, -70px) rotateX(240deg) rotateY(550deg); }
+}
+
+@keyframes floatRotate29 {
+    0% { transform: translate3d(0, 0, 110px) rotateX(-10deg) rotateY(-370deg); }
+    50% { transform: translate3d(120px, -110px, 0px) rotateX(-110deg) rotateY(-470deg); }
+    100% { transform: translate3d(0, 0, 110px) rotateX(-210deg) rotateY(-570deg); }
+}
+
+@keyframes floatRotate30 {
+    0% { transform: translate3d(0, 0, -90px) rotateX(50deg) rotateY(390deg); }
+    50% { transform: translate3d(135px, 90px, -30px) rotateX(150deg) rotateY(490deg); }
+    100% { transform: translate3d(0, 0, -90px) rotateX(250deg) rotateY(590deg); }
+}
 
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) {
@@ -676,14 +1160,6 @@ input[type=number] {
         top: 0; left: 0; right: 0; bottom: 0;
     }
     .gradient-legend { font-size: 0.8em; }
-
-     /* Instruction text inside the preview box on mobile */
-    .preview-instruction {
-        font-size: 0.8em; /* Smaller font on mobile */
-        display: none !important; /* Hide instruction completely on mobile */
-    }
-
-
     .controls-area {
         width: 100%; /* Take full width */
         max-width: 320px; /* Limit max width */
@@ -717,9 +1193,13 @@ input[type=number] {
     .history-swatch { width: 30px; height: 30px; }
     .palette-bar { min-height: 50px; }
     .palette-bar span { font-size: 0.75em; }
+    /* .palette-escape-instruction { font-size: 0.85em; } REMOVED AS IT'S NOW IN PREVIEW */
     .remove-color { width: 20px; height: 20px; font-size: 0.8em; top: 6px; right: 6px; }
      .number-input-arrows { width: 20px; padding-right: 2px;}
     .number-input-arrows .arrow { border-left-width: 5px; border-right-width: 5px; border-bottom-width: 5px; border-top-width: 5px; margin: 2px 0;}
+
+    /* Hide geometric shapes on smaller screens if they become too distracting or perform poorly */
+    .geometric-background { display: none; }
 
     /* Show close button on mobile */
     .close-palette-button {
@@ -729,9 +1209,23 @@ input[type=number] {
         right: 8px; /* Adjust right spacing */
         margin: 0; /* Remove auto margin */
         z-index: 1003; /* Ensure it's above other content */
+        /* Added button styles */
+         background: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+         color: white;
+         border: 1px solid rgba(255, 255, 255, 0.3);
+         border-radius: 4px;
+         width: 30px;
+         height: 30px;
+         align-items: center;
+         justify-content: center;
+         font-size: 1.2em;
+         cursor: pointer;
+         transition: background 0.2s ease, border-color 0.2s ease;
     }
-     .palette {
-         padding-top: 0; /* Remove padding as instruction and button are absolute */
+
+     .close-palette-button:hover {
+         background: rgba(255, 255, 255, 0.3);
+         border-color: rgba(255, 255, 255, 0.5);
      }
 }
 
@@ -749,7 +1243,8 @@ input[type=number] {
     .history-area, .export-button { max-width: 280px; }
     .history-area h2 { font-size: 1.2em; }
     .history-swatch { width: 25px; height: 25px; }
-    .preview-instruction { font-size: 0.8em; padding: 6px 12px; } /* Adjust font size for instruction in preview */
+    .palette-bar span { font-size: 0.7em; padding: 1px 4px;}
+    /* .palette-escape-instruction { font-size: 0.8em; padding: 6px 12px; } REMOVED */
     .number-input-arrows { width: 18px; padding-right: 1px;}
      .number-input-arrows .arrow { border-left-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-top-width: 4px; margin: 1px 0;}
      .close-palette-button {
