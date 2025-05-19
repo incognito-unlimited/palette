@@ -538,6 +538,7 @@ input[type=number] {
   box-sizing: border-box;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  padding-bottom: 30px; /* Space for the instruction message - ADD THIS LINE */
 }
 
 .palette-bar {
@@ -648,6 +649,29 @@ input[type=number] {
 /* Mobile Close Button for Palette */
 .close-palette-button {
     display: none; /* Hidden by default on desktop */
+}
+
+/* Style for the palette instruction message */
+.palette-instruction {
+    position: fixed; /* Fixed position relative to viewport */
+    bottom: 10px; /* Position from the bottom */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center horizontally */
+    background-color: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+    color: white; /* White text */
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap; /* Prevent text wrapping */
+    z-index: 1001; /* Ensure it's above the palette bars */
+    pointer-events: none; /* Don't interfere with clicks on bars */
+    opacity: 0; /* Hidden by default, controlled by JS */
+    transition: opacity 0.3s ease-in-out; /* Smooth transition */
+}
+
+/* Show the instruction when the palette is visible (controlled by JS adding .visible class) */
+.palette.visible .palette-instruction {
+    opacity: 1;
 }
 
 /* Animated Geometric Shapes Background */
@@ -1189,6 +1213,11 @@ input[type=number] {
 
      .action-buttons { gap: 10px; } /* Smaller gap for buttons */
     .action-button { padding: 10px 20px; font-size: 0.9em; }
+    /* Adjust palette instruction position for mobile */
+    .palette-instruction {
+    bottom: 5px; /* Closer to the bottom edge */
+    font-size: 0.8em; /* Smaller font size */
+    padding: 5px 10px; /* Smaller padding */}
 
     .history-swatch { width: 30px; height: 30px; }
     .palette-bar { min-height: 50px; }

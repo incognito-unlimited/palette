@@ -177,6 +177,17 @@ function generatePalette(baseHex, rule, size) {
     return colors;
 }
 
+// Function to generate CSS variables string from palette colors
+function generateCssVariables(colors) {
+    let cssString = ':root {\n';
+    colors.forEach((color, index) => {
+        cssString += `  --color-${index + 1}: ${color.toLowerCase()};\n`;
+    });
+    cssString += '}';
+    return cssString;
+}
+
+
 // Function to copy text to clipboard (with fallback)
 async function copyToClipboard(text) {
     try {
@@ -217,19 +228,20 @@ const lightnessValueSpan = document.getElementById('lightness-value');
 const harmonyRuleSelect = document.getElementById('harmony-rule');
 const paletteSizeInput = document.getElementById('palette-size');
 const generateButton = document.getElementById('generate-button');
-const exportButton = document.getElementById('export-button');
+const exportButton = document.getElementById('export-button'); // This button will now export CSS
 const paletteEl = document.getElementById('palette');
 const historySwatchesEl = document.getElementById('history-swatches');
 const closePaletteButton = document.getElementById('close-palette-button'); // Get mobile close button
 const sizeArrowUp = document.querySelector('.number-input-arrows .arrow.up');
 const sizeArrowDown = document.querySelector('.number-input-arrows .arrow.down');
+const paletteInstructionTextEl = document.getElementById('palette-instruction-text'); // Get the new palette instruction text span
 
 
 // State Variables
 const DEFAULT_COLOR = '#3b82f6'; // A nice starting blue
 let currentHex = DEFAULT_COLOR; // The currently SELECTED color (via click, slider, history, load)
 let currentHSL = hexToHsl(DEFAULT_COLOR);
-const HISTORY_MAX_SIZE = 7;
+let HISTORY_MAX_SIZE = 7; // Changed from const to let
 let colorHistory = [];
 let currentPalette = []; // Store the currently displayed palette
 
@@ -369,47 +381,90 @@ function loadState() {
         const savedBaseColor = localStorage.getItem(LS_KEY_BASE_COLOR);
         const savedHistory = localStorage.getItem(LS_KEY_HISTORY);
         const savedPalette = localStorage.getItem(LS_KEY_PALETTE);
+
         // Load base color first
         if (savedBaseColor && savedBaseColor.startsWith('#')) {
             selectColor(savedBaseColor); // This updates preview and sliders, hides instruction
         } else {
             selectColor(DEFAULT_COLOR); // Fallback to default, hides instruction
         }
+
         // Load history
         if (savedHistory) {
             colorHistory = JSON.parse(savedHistory);
-            renderHistory();
+            // History size will be set correctly by setHistorySizeBasedOnScreen after load
+            // The renderHistory call is now in setHistorySizeBasedOnScreen
         }
-        // Load palette
+
+        // Load palette data into the state variable, but DO NOT display it on load
         if (savedPalette) {
             currentPalette = JSON.parse(savedPalette);
-            displayPalette(currentPalette, false); // Display saved palette without animation
+            // Removed the displayPalette call here to prevent showing on load
+            // Removed the related visible class adding logic here
         }
+
         // On load, the preview should not be locked initially, and instructions hidden
         resetColorSelection();
+
     } catch (e) {
         console.error("Error loading from Local Storage:", e);
         // Clear potentially corrupted storage
         localStorage.removeItem(LS_KEY_BASE_COLOR);
         localStorage.removeItem(LS_KEY_HISTORY);
         localStorage.removeItem(LS_KEY_PALETTE);
+
         // Reset to default if loading fails
         selectColor(DEFAULT_COLOR);
         colorHistory = [];
-        renderHistory();
+        // History will be re-rendered by setHistorySizeBasedOnScreen
         resetColorSelection(); // Ensure not locked on failed load, hides instruction
     }
 }
+
+
+// Function to set history size based on screen width
+function setHistorySizeBasedOnScreen() {
+    const mobileBreakpoint = 768; // Match the CSS media query breakpoint
+    const oldHistorySize = HISTORY_MAX_SIZE; // Store the old size
+    if (window.innerWidth <= mobileBreakpoint) {
+        HISTORY_MAX_SIZE = 8;
+    } else {
+        HISTORY_MAX_SIZE = 7; // Default size for larger screens
+    }
+
+    // Only re-render history if the max size changed OR if history hasn't been rendered yet
+    if (HISTORY_MAX_SIZE !== oldHistorySize || historySwatchesEl.innerHTML === '') {
+         // Ensure history is trimmed if size decreases
+        if (colorHistory.length > HISTORY_MAX_SIZE) {
+            colorHistory = colorHistory.slice(0, HISTORY_MAX_SIZE);
+        }
+        renderHistory(); // Re-render history with the new size or on initial load
+    }
+     // If the size didn't change, no need to re-render, just ensure it's trimmed
+     if (colorHistory.length > HISTORY_MAX_SIZE) {
+        colorHistory = colorHistory.slice(0, HISTORY_MAX_SIZE);
+        // Optionally save state if history was trimmed
+        saveState();
+    }
+}
+
 
 // Function to display the generated palette
 function displayPalette(colors, animate = true) {
     console.log('Attempting to display palette:', colors);
     if (!colors || colors.length === 0) {
         console.log('No colors to display.');
-        paletteEl.style.display = 'none';
+        // Use class toggle for smooth transition
+        paletteEl.classList.remove('visible');
+         setTimeout(() => {
+             paletteEl.style.display = 'none';
+         }, 300); // Match CSS transition duration
+
         currentPalette = [];
         // Hide instruction when palette is hidden
-        updatePreview(currentHex, true); // Hide instruction in preview
+        updatePreview(currentHex, false); // Hide instruction in preview
+        // Hide the palette instruction message
+        paletteInstructionTextEl.style.opacity = '0';
         saveState();
         return;
     }
@@ -418,10 +473,24 @@ function displayPalette(colors, animate = true) {
     paletteEl.innerHTML = ''; // Clear previous content
     // Re-append the mobile close button
     paletteEl.appendChild(closePaletteButton);
+    // Re-append the palette instruction message
+    paletteEl.appendChild(paletteInstructionTextEl);
+
 
     // Show palette and hide instruction in preview
-    paletteEl.style.display = 'flex';
-    updatePreview(currentHex, false); // Hide instruction in preview
+    // Use class toggle for smooth transition
+    paletteEl.style.display = 'flex'; // Keep display flex while animating
+    if (animate) {
+        requestAnimationFrame(() => { // Use requestAnimationFrame for proper transition triggering
+             paletteEl.classList.add('visible');
+        });
+    } else {
+         paletteEl.classList.add('visible'); // Show instantly if not animating
+    }
+
+    updatePreview(currentHex, true); // Show instruction in preview when palette is open
+    // Show the palette instruction message
+    paletteInstructionTextEl.style.opacity = '1';
 
 
     // Create and append the color bars
@@ -484,7 +553,7 @@ function displayPalette(colors, animate = true) {
                     // Ensure the copied text color is based on the bar's background for readability
                      const currentBarTextColor = bar.style.color;
                     info.innerHTML = `<span style="color: ${currentBarTextColor}; background: none; padding: 0;">Copied!</span>`; // Add "Copied!" text
-                    info.classList.remove('fade-out');
+                    info.classList.remove('fade-in'); // Ensure fade-in is not active initially
                     info.classList.add('fade-in'); // Fade in "Copied!" text
                     bar.classList.add('copied'); // Start glow animation
                     // Wait for glow animation and "Copied!" to show, then fade back
@@ -534,9 +603,16 @@ function removeColorFromPalette(hexColor) {
         // If the palette is empty after removal, hide it
         if (currentPalette.length === 0) {
             console.log("Palette is empty, hiding.");
-            paletteEl.style.display = 'none';
+            // Use class toggle for smooth transition
+            paletteEl.classList.remove('visible');
+             setTimeout(() => {
+                 paletteEl.style.display = 'none';
+             }, 300); // Match CSS transition duration
+
             // Hide instruction when palette is hidden
             updatePreview(currentHex, false); // Hide instruction in preview
+            // Hide the palette instruction message
+            paletteInstructionTextEl.style.opacity = '0';
             resetColorSelection(); // Reset selection state indicators if palette is closed
         }
         saveState(); // Save updated palette
@@ -548,7 +624,15 @@ function removeColorFromPalette(hexColor) {
 
 // --- Event Listeners ---
 // Event Listener: Load state when DOM is ready
-document.addEventListener('DOMContentLoaded', loadState);
+document.addEventListener('DOMContentLoaded', () => {
+    loadState();
+    updatePreview(currentHex, false); // Ensure instruction is hidden on load
+    setHistorySizeBasedOnScreen(); // Set initial history size on load and render history
+});
+
+// Event Listener: Window Resize (adjust history size)
+window.addEventListener('resize', setHistorySizeBasedOnScreen);
+
 
 // Event Listener: Gradient Mouse Move (for hover preview)
 gradientEl.addEventListener('mousemove', e => {
@@ -605,7 +689,7 @@ hueSlider.addEventListener('input', () => {
     updatePreview(newHex, false); // Update preview display, hide instruction
     hueValueSpan.textContent = Math.round(h); // Update slider value display
     resetColorSelection(); // Unlock preview state and hide instruction
-    saveState(); // Save selection
+    saveState();
 });
 
 saturationSlider.addEventListener('input', () => {
@@ -694,22 +778,44 @@ generateButton.addEventListener('click', () => {
     lockPreview(); // Keep preview locked when generating a palette
 });
 
-// Event Listener: "Export Palette" Button Click
+// Event Listener: "Export Palette (CSS)" Button Click
+// Modified to generate and export based on current options, WITHOUT displaying the palette overlay
 exportButton.addEventListener('click', () => {
-    if (currentPalette.length === 0) {
-        alert('Generate a palette first!'); // Simple alert for now
+    const selectedRule = harmonyRuleSelect.value;
+    const paletteSize = parseInt(paletteSizeInput.value, 10);
+
+    // Re-validate size just in case (same validation as generate button)
+    if (isNaN(paletteSize) || paletteSize < 2 || paletteSize > 10) {
+        console.error("Invalid palette size:", paletteSize);
+         alert(`Please select a palette size between ${paletteSizeInput.min} and ${paletteSizeInput.max}.`);
         return;
     }
-    const paletteText = currentPalette.join('\n'); // Join colors with newlines
-    const blob = new Blob([paletteText], { type: 'text/plain' });
+
+    // Generate the palette based on current options
+    const colorsToExport = generatePalette(currentHex, selectedRule, paletteSize);
+
+    if (colorsToExport.length === 0) {
+        alert('Could not generate a palette to export.');
+        return;
+    }
+
+    // Removed the displayPalette call here to prevent showing the overlay on export
+
+    // Generate CSS variables string from the newly generated palette
+    const cssVariablesText = generateCssVariables(colorsToExport);
+    const blob = new Blob([cssVariablesText], { type: 'text/css' }); // Set MIME type to text/css
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'color_palette.txt';
+    a.download = 'color_palette.css'; // Suggest .css file extension
     document.body.appendChild(a); // Required for Firefox
     a.click();
     document.body.removeChild(a); // Clean up
     URL.revokeObjectURL(url); // Clean up the URL object
+
+    // Optionally provide feedback that the export has started/completed
+    console.log("Palette exported as CSS variables.");
+    // You could add a small temporary message on the screen here if desired
 });
 
 // Event Listener: Keyboard Press (for ESC key to close palette or resume hover)
@@ -717,8 +823,15 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
       if (paletteEl.style.display === 'flex') {
             // If palette is open, close it and reset selection
-            paletteEl.style.display = 'none';
+            // Use class toggle for smooth transition
+            paletteEl.classList.remove('visible');
+             setTimeout(() => {
+                 paletteEl.style.display = 'none';
+             }, 300); // Match CSS transition duration
+
             resetColorSelection(); // Unlock preview and hide instruction in preview
+            // Hide the palette instruction message
+            paletteInstructionTextEl.style.opacity = '0';
              saveState(); // Save state (this will clear the saved palette in LS if it's hidden)
       } else if (previewEl.classList.contains('locked')) {
             // If preview is locked (color selected in main view), reset selection
@@ -731,15 +844,26 @@ document.addEventListener('keydown', (event) => {
 // Event Listener for Mobile Close Button
 closePaletteButton.addEventListener('click', () => {
     if (paletteEl.style.display === 'flex') {
-        paletteEl.style.display = 'none';
+        // Use class toggle for smooth transition
+        paletteEl.classList.remove('visible');
+         setTimeout(() => {
+             paletteEl.style.display = 'none';
+         }, 300); // Match CSS transition duration
+
         resetColorSelection(); // Unlock preview and hide instruction in preview
+        // Hide the palette instruction message
+        paletteInstructionTextEl.style.opacity = '0';
         saveState(); // Save state
     }
 });
 
 
-// Ensure instruction is hidden on initial load
+// Ensure instruction is hidden on initial load and set initial history size
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
     updatePreview(currentHex, false); // Ensure instruction is hidden on load
+    setHistorySizeBasedOnScreen(); // Set initial history size on load and render history
 });
+
+// Event Listener: Window Resize (adjust history size)
+window.addEventListener('resize', setHistorySizeBasedOnScreen);
