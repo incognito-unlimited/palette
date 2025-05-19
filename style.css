@@ -538,7 +538,6 @@ input[type=number] {
   box-sizing: border-box;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-  padding-bottom: 30px; /* Space for the instruction message - ADD THIS LINE */
 }
 
 .palette-bar {
@@ -654,14 +653,14 @@ input[type=number] {
 /* Style for the palette instruction message */
 .palette-instruction {
     position: fixed; /* Fixed position relative to viewport */
-    bottom: 10px; /* Position from the bottom */
+    bottom: 0px; /* Position from the bottom */
     left: 50%; /* Center horizontally */
     transform: translateX(-50%); /* Center horizontally */
-    background-color: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+    background-color: rgba(0, 0, 0, 0.5); /* Dark semi-transparent background */
     color: white; /* White text */
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 0.9em;
+    padding: 0.5px 3px;
+    border-radius: 5px;
+    font-size: 0.8em;
     white-space: nowrap; /* Prevent text wrapping */
     z-index: 1001; /* Ensure it's above the palette bars */
     pointer-events: none; /* Don't interfere with clicks on bars */
