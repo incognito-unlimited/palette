@@ -13,11 +13,13 @@
       <div class="rgb-gradient" id="gradient" tabindex="0" aria-label="Color gradient picker"></div>
       <div class="gradient-legend">X: Hue, Y: Lightness</div>
     </div>
+
     <div class="controls-area">
       <div class="preview" id="preview" aria-live="polite" aria-atomic="true">
         <span class="preview-text" id="preview-text-hex"></span>
         <span class="preview-text" id="preview-text-rgb"></span>
         <span class="preview-text" id="preview-text-hsl"></span>
+        <span class="preview-instruction" id="preview-instruction-text">Press ESC to choose another color</span>
       </div>
       <div class="hsl-sliders">
         <div class="slider-group">
@@ -72,7 +74,7 @@
     </div>
   </div>
   <div class="palette" id="palette">
-    <div class="palette-escape-instruction" id="palette-escape-instruction">Press ESC to choose another color</div>
+    <button class="close-palette-button" id="close-palette-button" aria-label="Close palette">X</button>
   </div>
   <script src="script.js" defer></script>
 </body>

@@ -38,11 +38,11 @@ function getRelativeLuminance(r, g, b) {
 }
 
 // Helper function: Determine text color (dark or light) based on background luminance
-// Used for palette bar text and now for remove button color
+// KEPT for palette bar text color
 function getTextColor(bgColor) {
     const { r, g, b } = hexToRgb(bgColor);
     const luminance = getRelativeLuminance(r, g, b);
-    // Use a luminance threshold to switch between dark and light text/icon
+    // Use a luminance threshold to switch between dark and light text
     return luminance > 0.2 ? '#1f2937' : '#f0f0f0'; // Use specific dark/light colors
 }
 
@@ -207,6 +207,7 @@ const previewEl = document.getElementById('preview');
 const previewTextHexEl = document.getElementById('preview-text-hex');
 const previewTextRgbEl = document.getElementById('preview-text-rgb');
 const previewTextHslEl = document.getElementById('preview-text-hsl');
+const previewInstructionTextEl = document.getElementById('preview-instruction-text'); // Get the instruction text span
 const hueSlider = document.getElementById('hue-slider');
 const saturationSlider = document.getElementById('saturation-slider');
 const lightnessSlider = document.getElementById('lightness-slider');
@@ -219,7 +220,7 @@ const generateButton = document.getElementById('generate-button');
 const exportButton = document.getElementById('export-button');
 const paletteEl = document.getElementById('palette');
 const historySwatchesEl = document.getElementById('history-swatches');
-const paletteEscapeInstructionEl = document.getElementById('palette-escape-instruction'); // Get instruction div
+const closePaletteButton = document.getElementById('close-palette-button'); // Get mobile close button
 const sizeArrowUp = document.querySelector('.number-input-arrows .arrow.up');
 const sizeArrowDown = document.querySelector('.number-input-arrows .arrow.down');
 
@@ -237,19 +238,36 @@ const LS_KEY_BASE_COLOR = 'paletteMakerBaseColor';
 const LS_KEY_HISTORY = 'paletteMakerHistory';
 const LS_KEY_PALETTE = 'paletteMakerPalette';
 
-// Function to update the preview area with current color info
-// Called whenever currentHex or currentHSL changes (by selection)
-function updatePreview(hexColor) {
+// Function to update the preview area with current color info and instruction visibility
+// Called whenever currentHex or currentHSL changes (by selection or hover)
+function updatePreview(hexColor, showInstruction = false) {
     const { r, g, b } = hexToRgb(hexColor);
     const [h, s, l] = hexToHsl(hexColor);
     previewEl.style.background = hexColor;
-    // Keep text color consistently dark
+
+    // Keep color format text (Hex, RGB, HSL) black
     previewTextHexEl.style.color = '#1f2937';
     previewTextRgbEl.style.color = '#1f2937';
     previewTextHslEl.style.color = '#1f2937';
+
     previewTextHexEl.textContent = hexColor.toUpperCase();
     previewTextRgbEl.textContent = rgbToString(r, g, b);
     previewTextHslEl.textContent = hslToString(h, s, l);
+
+    // Control instruction visibility and color
+    // Check if not on a mobile screen based on media query breakpoint (handled by CSS display: none)
+    // JS will just toggle 'display: block' or 'none', CSS media query overrides 'block' on mobile
+    if (showInstruction) {
+        // Only show instruction if the screen is not considered mobile by the CSS media query
+         if (window.matchMedia("(min-width: 769px)").matches) {
+            previewInstructionTextEl.style.display = 'block';
+            previewInstructionTextEl.style.color = getTextColor(hexColor); // Set instruction color dynamically
+         } else {
+             previewInstructionTextEl.style.display = 'none';
+         }
+    } else {
+        previewInstructionTextEl.style.display = 'none';
+    }
 }
 
 // Function to update the HSL sliders and their value spans
@@ -279,6 +297,7 @@ function renderHistory() {
             selectColor(hex); // Select this color
             addToHistory(hex); // Add back to history (moves it to front)
             lockPreview(); // Lock preview when selecting from history
+            updatePreview(currentHex, true); // Show instruction after selecting from history
         });
         swatch.addEventListener('keydown', (event) => {
             // Allow Enter or Space to trigger click
@@ -309,7 +328,7 @@ function addToHistory(hexColor) {
 function selectColor(hexColor) {
     currentHex = hexColor;
     currentHSL = hexToHsl(currentHex); // Update HSL state from Hex
-    updatePreview(currentHex);
+    updatePreview(currentHex); // Update preview display (instruction hidden by default in updatePreview)
     updateSliders(currentHSL[0], currentHSL[1], currentHSL[2]);
     // Removed previewEl.classList.add('locked') from here
     saveState(); // Save selected color to local storage
@@ -320,9 +339,11 @@ function lockPreview() {
     previewEl.classList.add('locked');
 }
 
-// Function to reset the color selection state (unlock preview)
+// Function to reset the color selection state (unlock preview and hide instruction)
 function resetColorSelection() {
     previewEl.classList.remove('locked');
+    updatePreview(currentHex, false); // Hide instruction
+    // Keep the last selected color and its state (currentHex, currentHSL, sliders)
 }
 
 // Function to save state to Local Storage
@@ -350,9 +371,9 @@ function loadState() {
         const savedPalette = localStorage.getItem(LS_KEY_PALETTE);
         // Load base color first
         if (savedBaseColor && savedBaseColor.startsWith('#')) {
-            selectColor(savedBaseColor); // This updates preview and sliders
+            selectColor(savedBaseColor); // This updates preview and sliders, hides instruction
         } else {
-            selectColor(DEFAULT_COLOR); // Fallback to default
+            selectColor(DEFAULT_COLOR); // Fallback to default, hides instruction
         }
         // Load history
         if (savedHistory) {
@@ -364,7 +385,7 @@ function loadState() {
             currentPalette = JSON.parse(savedPalette);
             displayPalette(currentPalette, false); // Display saved palette without animation
         }
-        // On load, the preview should not be locked initially
+        // On load, the preview should not be locked initially, and instructions hidden
         resetColorSelection();
     } catch (e) {
         console.error("Error loading from Local Storage:", e);
@@ -376,7 +397,7 @@ function loadState() {
         selectColor(DEFAULT_COLOR);
         colorHistory = [];
         renderHistory();
-        resetColorSelection(); // Ensure not locked on failed load
+        resetColorSelection(); // Ensure not locked on failed load, hides instruction
     }
 }
 
@@ -388,17 +409,20 @@ function displayPalette(colors, animate = true) {
         paletteEl.style.display = 'none';
         currentPalette = [];
         // Hide instruction when palette is hidden
-        paletteEscapeInstructionEl.style.display = 'none';
+        updatePreview(currentHex, false); // Hide instruction in preview
         saveState();
         return;
     }
 
     currentPalette = [...colors]; // Store a copy of the displayed palette array
     paletteEl.innerHTML = ''; // Clear previous content
-    // Re-append the instruction div as innerHTML clears everything
-    paletteEl.appendChild(paletteEscapeInstructionEl);
-    // Show instruction when palette is displayed
-    paletteEscapeInstructionEl.style.display = 'block';
+    // Re-append the mobile close button
+    paletteEl.appendChild(closePaletteButton);
+
+    // Show palette and hide instruction in preview
+    paletteEl.style.display = 'flex';
+    updatePreview(currentHex, false); // Hide instruction in preview
+
 
     // Create and append the color bars
     currentPalette.forEach((color, i) => { // Use currentPalette state array
@@ -432,7 +456,7 @@ function displayPalette(colors, animate = true) {
         // hslSpan.style.color = textColor; // Color is inherited from parent
         colorInfoDiv.appendChild(hslSpan);
         // Store original text HTML for fading back
-        bar.originalInfoHTML = colorInfoDiv.innerHTML;
+        bar.originalInfoHTML = colorInfoDiv.innerHTML; // Store original HTML
         // Add Remove button
         const removeButton = document.createElement('button');
         removeButton.className = 'remove-color';
@@ -443,7 +467,7 @@ function displayPalette(colors, animate = true) {
         removeButton.style.color = getTextColor(color); // Set color dynamically
         removeButton.addEventListener('click', (event) => {
             event.stopPropagation(); // Prevent click event from bubbling to the bar
-            removeColorFromPalette(color);
+            removeColorFromPalette(color); // Pass the hex color to be removed
         });
         bar.appendChild(removeButton);
         // Add click listener to copy color
@@ -453,8 +477,8 @@ function displayPalette(colors, animate = true) {
             if (success) {
                 // Handle copy animation and text fade
                 const info = bar.querySelector('.color-info');
-                const originalHTML = bar.originalInfoHTML; // Retrieve stored HTML
-                info.classList.add('fade-out'); // Start fade out original text
+                const originalHTML = info.innerHTML; // Retrieve stored HTML
+                 info.classList.add('fade-out'); // Start fade out original text
                 setTimeout(() => {
                     // Change text content to "Copied!"
                     // Ensure the copied text color is based on the bar's background for readability
@@ -489,25 +513,37 @@ function displayPalette(colors, animate = true) {
             bar.classList.add('show'); // Show instantly if not animating
         }
     });
-    paletteEl.style.display = 'flex'; // Show the palette container
+
     console.log('Palette displayed.');
     saveState(); // Save the displayed palette
 }
 
 // Function to remove a color from the current palette
 function removeColorFromPalette(hexColor) {
-    // Filter the currentPalette array state
-    currentPalette = currentPalette.filter(color => color.toLowerCase() !== hexColor.toLowerCase());
-    // Re-display the palette from the updated array
-    displayPalette(currentPalette, false); // No animation on removal update
-    // If the palette is empty, hide it
-    if (currentPalette.length === 0) {
-        paletteEl.style.display = 'none';
-         // Hide instruction when palette is hidden
-        paletteEscapeInstructionEl.style.display = 'none';
-        resetColorSelection(); // Reset selection state indicators if palette is closed
+    console.log("Attempting to remove color:", hexColor);
+    // Find the index of the FIRST occurrence of the color in the array state
+    const indexToRemove = currentPalette.findIndex(color => color.toLowerCase() === hexColor.toLowerCase());
+
+    if (indexToRemove !== -1) {
+        // Use splice to remove only that element at the found index
+        currentPalette.splice(indexToRemove, 1);
+        console.log("Color removed. New palette:", currentPalette);
+        // Re-display the palette from the updated array state
+        displayPalette(currentPalette, false); // No animation on removal update
+
+        // If the palette is empty after removal, hide it
+        if (currentPalette.length === 0) {
+            console.log("Palette is empty, hiding.");
+            paletteEl.style.display = 'none';
+            // Hide instruction when palette is hidden
+            updatePreview(currentHex, false); // Hide instruction in preview
+            resetColorSelection(); // Reset selection state indicators if palette is closed
+        }
+        saveState(); // Save updated palette
+    } else {
+        console.log("Color not found in palette:", hexColor);
+        // This case should theoretically not happen if the remove button is within a palette bar
     }
-    saveState(); // Save updated palette
 }
 
 // --- Event Listeners ---
@@ -528,15 +564,8 @@ gradientEl.addEventListener('mousemove', e => {
     const { r, g, b } = hexToRgb(hoverHex);
 
     // Update preview element styles and text content directly (temporary)
-    previewEl.style.background = hoverHex;
-    // Keep text color consistently dark during hover
-    previewTextHexEl.style.color = '#1f2937';
-    previewTextRgbEl.style.color = '#1f2937';
-    previewTextHslEl.style.color = '#1f2937';
-
-    previewTextHexEl.textContent = hoverHex.toUpperCase();
-    previewTextRgbEl.textContent = rgbToString(r, g, b);
-    previewTextHslEl.textContent = hslToString(h, s, l);
+    // Do NOT show instruction on hover
+    updatePreview(hoverHex, false);
     // Do NOT update currentHex, currentHSL, or sliders here
 });
 
@@ -544,7 +573,8 @@ gradientEl.addEventListener('mousemove', e => {
 gradientEl.addEventListener('mouseleave', () => {
     // If a color is not locked, revert the preview to the current selected color state
     if (!previewEl.classList.contains('locked')) {
-        updatePreview(currentHex); // Revert preview using the actual state
+        // Revert preview using the actual state, hide instruction
+        updatePreview(currentHex, false);
         // Also ensure sliders reflect the actual state color
         updateSliders(currentHSL[0], currentHSL[1], currentHSL[2]);
     }
@@ -561,7 +591,7 @@ gradientEl.addEventListener('click', e => {
     selectColor(clickedHex); // Select the color (updates state, preview, sliders)
     addToHistory(clickedHex); // Add to history
     lockPreview(); // Lock preview when a color is clicked
-    // Removed instruction display logic here
+    updatePreview(currentHex, true); // Show instruction after selecting
 });
 
 // Event Listeners for HSL sliders
@@ -572,9 +602,9 @@ hueSlider.addEventListener('input', () => {
     const newHex = hslToHex(h, s, l);
     currentHex = newHex; // Update currentHex state
     currentHSL = [h, s, l]; // Update currentHSL state
-    updatePreview(newHex); // Update preview display
+    updatePreview(newHex, false); // Update preview display, hide instruction
     hueValueSpan.textContent = Math.round(h); // Update slider value display
-    resetColorSelection(); // Unlock preview state when adjusting sliders
+    resetColorSelection(); // Unlock preview state and hide instruction
     saveState(); // Save selection
 });
 
@@ -585,9 +615,9 @@ saturationSlider.addEventListener('input', () => {
     const newHex = hslToHex(h, s, l);
     currentHex = newHex;
     currentHSL = [h, s, l];
-    updatePreview(newHex);
+    updatePreview(newHex, false); // Hide instruction
     saturationValueSpan.textContent = Math.round(s);
-    resetColorSelection(); // Unlock preview state when adjusting sliders
+    resetColorSelection(); // Unlock preview state and hide instruction
     saveState();
 });
 
@@ -598,9 +628,9 @@ lightnessSlider.addEventListener('input', () => {
     const newHex = hslToHex(h, s, l);
     currentHex = newHex;
     currentHSL = [h, s, l];
-    updatePreview(newHex);
+    updatePreview(newHex, false); // Hide instruction
     lightnessValueSpan.textContent = Math.round(l);
-    resetColorSelection(); // Unlock preview state when adjusting sliders
+    resetColorSelection(); // Unlock preview state and hide instruction
     saveState();
 });
 
@@ -659,7 +689,7 @@ generateButton.addEventListener('click', () => {
 
     const colors = generatePalette(currentHex, selectedRule, paletteSize);
     console.log('Palette generated:', colors);
-    displayPalette(colors); // This function now handles showing the palette and instruction
+    displayPalette(colors); // This function now handles showing the palette and hiding instruction in preview
     addToHistory(currentHex); // Add the base color to history when palette is generated
     lockPreview(); // Keep preview locked when generating a palette
 });
@@ -682,19 +712,34 @@ exportButton.addEventListener('click', () => {
     URL.revokeObjectURL(url); // Clean up the URL object
 });
 
-// Event Listener: Keyboard Press (for ESC key to close palette)
+// Event Listener: Keyboard Press (for ESC key to close palette or resume hover)
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && paletteEl.style.display === 'flex') {
-    paletteEl.style.display = 'none';
-    // Hide instruction when palette is hidden
-    paletteEscapeInstructionEl.style.display = 'none';
-    resetColorSelection(); // Reset color selection state indicators when ESC is pressed
-    saveState(); // Save state (this will clear the saved palette in LS if it's hidden)
+  if (event.key === 'Escape') {
+      if (paletteEl.style.display === 'flex') {
+            // If palette is open, close it and reset selection
+            paletteEl.style.display = 'none';
+            resetColorSelection(); // Unlock preview and hide instruction in preview
+             saveState(); // Save state (this will clear the saved palette in LS if it's hidden)
+      } else if (previewEl.classList.contains('locked')) {
+            // If preview is locked (color selected in main view), reset selection
+            resetColorSelection(); // Unlock preview and hide instruction in preview
+            // No need to saveState here as no new color is selected or palette generated/closed
+      }
   }
 });
+
+// Event Listener for Mobile Close Button
+closePaletteButton.addEventListener('click', () => {
+    if (paletteEl.style.display === 'flex') {
+        paletteEl.style.display = 'none';
+        resetColorSelection(); // Unlock preview and hide instruction in preview
+        saveState(); // Save state
+    }
+});
+
 
 // Ensure instruction is hidden on initial load
 document.addEventListener('DOMContentLoaded', () => {
     loadState();
-    paletteEscapeInstructionEl.style.display = 'none';
+    updatePreview(currentHex, false); // Ensure instruction is hidden on load
 });

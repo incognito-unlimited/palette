@@ -14,7 +14,7 @@ body {
   color: #1f2937; /* Default text color */
   line-height: 1.5;
   position: relative; /* Needed for pseudo-element positioning */
-  overflow: hidden; /* Hide potential overflow from pattern */
+  /* Removed overflow: hidden; */
 }
 
 /* Geometric Pattern Overlay */
@@ -136,6 +136,7 @@ h1.main-title {
     text-align: center;
 }
 
+
 .controls-area {
     display: flex;
     flex-direction: column;
@@ -179,6 +180,17 @@ h1.main-title {
     text-overflow: ellipsis;
     color: #1f2937; /* Always dark text */
 }
+
+/* Instruction text inside the preview box */
+.preview-instruction {
+    display: none; /* Hidden by default, controlled by JS */
+    font-size: 0.9em; /* Match Harmony label font size */
+    text-align: center;
+    margin-top: 8px; /* Space above the text */
+    white-space: nowrap; /* Prevent text wrapping */
+    /* Color will be set by JS */
+}
+
 
 /* HSL Sliders Styling */
 .hsl-sliders {
@@ -399,7 +411,7 @@ input[type=number] {
     border-top: 6px solid #1f2937; /* Increased size, Dark arrow */
 }
 
-.number-input-arrows .arrow:hover {
+.number-input-arrows:hover .arrow {
     opacity: 0.7;
 }
 
@@ -424,7 +436,7 @@ input[type=number] {
     box-sizing: border-box;
     z-index: 1; /* Ensure history is above pattern */
     position: relative;
-    margin-top: 0; /* Remove top margin as it's part of flex row */
+    margin-top: 0; /* Remove top margin as it's in flex row */
 }
 
 .history-area h2 {
@@ -500,7 +512,7 @@ input[type=number] {
 
 .action-button:hover {
     background: #fff; /* Slightly lighter on hover */
-    box-shadow: 0 44px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .action-button:active { transform: scale(0.98); }
 .action-button:focus {
@@ -515,7 +527,7 @@ input[type=number] {
 .palette {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  display: none; /* Hidden by default */
+  display: none;
   flex-direction: column;
   background-color: rgba(0,0,0,0.9); /* Darker, more minimal overlay */
   z-index: 1000;
@@ -599,7 +611,7 @@ input[type=number] {
     position: absolute;
     top: 8px; /* Adjusted position */
     right: 8px; /* Adjusted position */
-    background: none; /* Removed background */
+    background: none; /* Removed red background */
     border: none;
     border-radius: 50%; /* Circle button */
     width: 22px; /* Larger */
@@ -614,7 +626,7 @@ input[type=number] {
     line-height: 1;
     padding: 0;
     z-index: 1; /* Ensure button is above text */
-    /* Removed box-shadow from here */
+    color: unset; /* Allow script to set color */
 }
 
 .palette-bar:hover .remove-color {
@@ -629,23 +641,9 @@ input[type=number] {
     outline-offset: 2px;
 }
 
-/* Escape Instruction on Palette Overlay */
-.palette-escape-instruction {
-    position: sticky;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #e0e0e0; /* Lighter text */
-    font-size: 0.9em; /* Set font size to match Harmony label */
-    padding: 8px 16px; /* Adjusted padding */
-    background-color: rgba(0, 0, 0, 0.7); /* More opaque */
-    border-radius: 0 0 8px 8px;
-    text-align: center;
-    z-index: 1002;
-    width: fit-content;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    /* Removed display: none; - visibility controlled by JS */
+/* Mobile Close Button for Palette */
+.close-palette-button {
+    display: none; /* Hidden by default on desktop */
 }
 
 
@@ -678,6 +676,14 @@ input[type=number] {
         top: 0; left: 0; right: 0; bottom: 0;
     }
     .gradient-legend { font-size: 0.8em; }
+
+     /* Instruction text inside the preview box on mobile */
+    .preview-instruction {
+        font-size: 0.8em; /* Smaller font on mobile */
+        display: none !important; /* Hide instruction completely on mobile */
+    }
+
+
     .controls-area {
         width: 100%; /* Take full width */
         max-width: 320px; /* Limit max width */
@@ -711,10 +717,22 @@ input[type=number] {
     .history-swatch { width: 30px; height: 30px; }
     .palette-bar { min-height: 50px; }
     .palette-bar span { font-size: 0.75em; }
-    .palette-escape-instruction { font-size: 0.85em; }
     .remove-color { width: 20px; height: 20px; font-size: 0.8em; top: 6px; right: 6px; }
      .number-input-arrows { width: 20px; padding-right: 2px;}
     .number-input-arrows .arrow { border-left-width: 5px; border-right-width: 5px; border-bottom-width: 5px; border-top-width: 5px; margin: 2px 0;}
+
+    /* Show close button on mobile */
+    .close-palette-button {
+        display: flex; /* Show the close button */
+        position: absolute; /* Absolute position relative to palette */
+        top: 8px; /* Adjust top spacing */
+        right: 8px; /* Adjust right spacing */
+        margin: 0; /* Remove auto margin */
+        z-index: 1003; /* Ensure it's above other content */
+    }
+     .palette {
+         padding-top: 0; /* Remove padding as instruction and button are absolute */
+     }
 }
 
 @media (max-width: 480px) {
@@ -731,8 +749,12 @@ input[type=number] {
     .history-area, .export-button { max-width: 280px; }
     .history-area h2 { font-size: 1.2em; }
     .history-swatch { width: 25px; height: 25px; }
-    .palette-bar span { font-size: 0.7em; padding: 1px 4px;}
-    .palette-escape-instruction { font-size: 0.8em; padding: 6px 12px; }
+    .preview-instruction { font-size: 0.8em; padding: 6px 12px; } /* Adjust font size for instruction in preview */
     .number-input-arrows { width: 18px; padding-right: 1px;}
      .number-input-arrows .arrow { border-left-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-top-width: 4px; margin: 1px 0;}
+     .close-palette-button {
+        width: 25px;
+        height: 25px;
+        font-size: 1em;
+     }
 }
