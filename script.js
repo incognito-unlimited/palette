@@ -409,7 +409,7 @@ function displayPalette(colors, animate = true) {
         paletteEl.style.display = 'none';
         currentPalette = [];
         // Hide instruction when palette is hidden
-        updatePreview(currentHex, false); // Hide instruction in preview
+        updatePreview(currentHex, true); // Hide instruction in preview
         saveState();
         return;
     }

@@ -1198,8 +1198,8 @@ input[type=number] {
      .number-input-arrows { width: 20px; padding-right: 2px;}
     .number-input-arrows .arrow { border-left-width: 5px; border-right-width: 5px; border-bottom-width: 5px; border-top-width: 5px; margin: 2px 0;}
 
-    /* Hide geometric shapes on smaller screens if they become too distracting or perform poorly */
-    .geometric-background { display: none; }
+    /* Hide geometric shapes on smaller screens if they become too distracting or perform poorly 
+    .geometric-background { display: none; }*/
 
     /* Show close button on mobile */
     .close-palette-button {
